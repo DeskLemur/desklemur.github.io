@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeskLemurOS | Runtime Trace</title>
+    <link id="theme-style" rel="stylesheet" href="system_graph.css?v=ember-20260722">
+</head>
+<body>
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="main-interface">
+        <header>
+            <div>
+                <h1>DeskLemurOS RUNTIME TRACE</h1>
+                <p class="header-subtitle">Agent execution, memory recall, tool chains, interrupts, and final responses.</p>
+            </div>
+            <div class="header-actions">
+                <button class="modal-trigger-btn" onclick="clearTraceEvents()">CLEAR TRACE</button>
+                <button class="modal-trigger-btn" onclick="resetLlmUsage()">RESET TOKENS</button>
+                <button class="modal-trigger-btn" onclick="openTraceConsole()">OPEN TRACE CONSOLE</button>
+            </div>
+        </header>
+        <div class="system-monitor">
+            <div class="trace-workspace">
+                <section class="metrics-panel trace-graph-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Execution Graph</h3>
+                            <p>Live path from prompt to reasoning, tools, memory, interrupts, and response.</p>
+                        </div>
+                        <span class="live-pill" id="trace-live-pill">WAITING</span>
+                    </div>
+                    <canvas id="traceGraphCanvas"></canvas>
+                </section>
+
+                <section class="metrics-panel trace-timeline-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h3>Turn Timeline</h3>
+                            <p>Recent agent events, normalized into a debuggable timeline.</p>
+                        </div>
+                        <span id="trace-event-count">0 events</span>
+                    </div>
+                    <div id="traceTimeline" class="trace-timeline">
+                        <div class="trace-empty">Waiting for dashboard events...</div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="trace-side">
+                <section class="metrics-panel">
+                    <h3>Trace Inspector</h3>
+                    <div class="metrics-grid trace-stats-grid">
+                        <div class="metric-item">
+                            <div class="metric-label">ACTIVE AGENT</div>
+                            <div class="metric-value" id="trace-agent">--</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">LAST EVENT</div>
+                            <div class="metric-value" id="trace-last-event">--</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">PLANS</div>
+                            <div class="metric-value" id="trace-plan-count">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">TOOLS</div>
+                            <div class="metric-value" id="trace-tool-count">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">MEMORY HITS</div>
+                            <div class="metric-value" id="trace-memory-count">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">POLICY</div>
+                            <div class="metric-value" id="trace-policy-count">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">INTERRUPTS</div>
+                            <div class="metric-value" id="trace-interrupt-count">0</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">ORCHESTRATION</div>
+                            <div class="metric-value" id="trace-orchestration-mode">--</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">PHASE</div>
+                            <div class="metric-value" id="trace-orchestration-phase">--</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">TURN</div>
+                            <div class="metric-value" id="trace-orchestration-turn">0</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="metrics-panel compact-runtime-panel">
+                <h3>Runtime Load</h3>
+                <p id="runtime-summary">LIVE STREAMING...</p>
+                <div class="load-bars">
+                    <div class="load-bar-row">
+                        <span>CPU</span>
+                        <div class="load-bar"><i id="cpu-bar"></i></div>
+                        <b id="cpu-percent-inline">--%</b>
+                    </div>
+                    <div class="load-bar-row">
+                        <span>RAM</span>
+                        <div class="load-bar"><i id="ram-bar"></i></div>
+                        <b id="ram-percent-inline">--%</b>
+                    </div>
+                </div>
+                <div class="agent-list compact-list">
+                    <div class="agent-row"><span>HEALTH</span> <span id="runtime-health">NORMAL</span></div>
+                    <div class="agent-row"><span>PROCESS MEMORY</span> <span id="proc-mem-card">-- MB</span></div>
+                    <div class="agent-row"><span>MEMORY NODES</span> <span id="node-count-display">--</span></div>
+                    <div class="agent-row"><span>STM ENTRIES</span> <span id="stm-count">0</span></div>
+                    <div class="agent-row"><span>SYSTEM MEMORY</span> <span id="system-memory-percent">--%</span></div>
+                    <div class="agent-row"><span>CPU LOAD</span> <span id="cpu-val">--%</span></div>
+                    <div class="agent-row"><span>LATENCY</span> <span id="lat-val">-- ms</span></div>
+                </div>
+                </section>
+
+                <section class="metrics-panel compact-runtime-panel">
+                <h3>LLM Pulse</h3>
+                <div class="agent-row"><span>REQUESTS</span> <span id="llm-requests">0</span></div>
+                <div class="agent-row"><span>TOTAL TOKENS</span> <span id="llm-token-total">0</span></div>
+                <div class="agent-row"><span>PROMPT TOKENS</span> <span id="llm-prompt-tokens">0</span></div>
+                <div class="agent-row"><span>CACHED PROMPT</span> <span id="llm-cached-prompt-tokens">0</span></div>
+                <div class="agent-row"><span>KV CACHE</span> <span id="llm-prompt-cache-state">--</span></div>
+                <div class="agent-row"><span>COMPLETION TOKENS</span> <span id="llm-completion-tokens">0</span></div>
+                <div class="agent-row"><span>LAST ENGINE</span> <span id="llm-last-engine">--</span></div>
+                <div class="agent-row"><span>LAST MODEL</span> <span id="llm-last-model">--</span></div>
+                <div class="agent-row"><span>LAST LATENCY</span> <span id="llm-last-latency">0 ms</span></div>
+                <div class="agent-row"><span>LIVE STATUS</span> <span id="llm-live-status">IDLE</span></div>
+                <div class="agent-row"><span>LIVE TOKENS</span> <span id="llm-live-tokens">0</span></div>
+                <div class="agent-row"><span>LIVE PROMPT TOKENS/S</span> <span id="llm-live-prompt-tps">0 tok/s</span></div>
+                <div class="agent-row"><span>LIVE TOKENS/S</span> <span id="llm-live-tps">0 tok/s</span></div>
+                <div class="agent-row"><span>LAST PROMPT TOKENS/S</span> <span id="llm-last-pp-tps">0 tok/s</span></div>
+                <div class="agent-row"><span>LAST TOKENS/S</span> <span id="llm-last-tps">0 tok/s</span></div>
+                </section>
+            </aside>
+        </div>
+    </div>
+
+    <div class="neural-modal-overlay" id="neuralModal">
+        <div class="neural-modal-content trace-console-modal">
+            <div class="modal-header">
+                <div>
+                    <h2>TRACE CONSOLE</h2>
+                    <p class="modal-subtitle">Replay the latest turn through memory, reasoning, tools, loops, and response.</p>
+                </div>
+                <button class="close-btn" onclick="closeNeuralModal()">×</button>
+            </div>
+            <div class="trace-console-tabs" role="tablist">
+                <button class="trace-console-tab active" data-tab="turn" onclick="setTraceConsoleTab('turn')">Turn Replay</button>
+                <button class="trace-console-tab" data-tab="memory" onclick="setTraceConsoleTab('memory')">Memory Trace</button>
+                <button class="trace-console-tab" data-tab="graph_links" onclick="setTraceConsoleTab('graph_links')">Graph Links</button>
+                <button class="trace-console-tab" data-tab="policy" onclick="setTraceConsoleTab('policy')">Agent Policy</button>
+                <button class="trace-console-tab" data-tab="errors" onclick="setTraceConsoleTab('errors')">Errors</button>
+                <button class="trace-console-tab" data-tab="loop" onclick="setTraceConsoleTab('loop')">Loop Inspector</button>
+                <button class="trace-console-tab" data-tab="tools" onclick="setTraceConsoleTab('tools')">Tool Chain</button>
+            </div>
+            <div id="traceConsoleBody" class="trace-console-body"></div>
+        </div>
+    </div>
+<script src="tauri_bridge.js?v=system-graph-wide-window-20260705"></script>
+<script src="system_graph.js?v=orchestration-telemetry-20260716"></script>
+<script src="demo_feed.js?v=full-graph-20260718"></script>
+</body>
+</html>
