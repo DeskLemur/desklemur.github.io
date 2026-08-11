@@ -1,8 +1,8 @@
 window.DESKLEMUR_SITE = {
   "site": {
-    "github_url": "https://github.com/",
-    "contact_email": "hello@desklemur.com",
-    "location": "SEOUL · ANYWHERE",
+    "github_url": "https://github.com/desklemur-dev/DeskLemurOS",
+    "contact_email": "desklemur@outlook.com",
+    "location": "...",
     "copyright_year": "2026"
   },
   "home": {
