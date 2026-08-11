@@ -1966,6 +1966,93 @@ input {
   transform: scale(1.03);
 }
 
+.capability-live-demo {
+  position: relative;
+  background: #0a0f14;
+}
+
+.capability-live-bar,
+.capability-live-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 0 11px;
+  background: #12130f;
+  color: #aaa69c;
+  font-family: "Courier New", monospace;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.capability-live-bar {
+  border-bottom: 1px solid #3b3831;
+}
+
+.capability-live-bar span:last-child {
+  color: var(--green);
+}
+
+.capability-live-bar i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(155, 181, 111, 0.7);
+  animation: blink 2.4s steps(2, start) infinite;
+}
+
+.capability-live-viewport {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+}
+
+.capability-live-viewport iframe {
+  position: absolute;
+  inset: 0;
+  width: 220%;
+  height: 220%;
+  border: 0;
+  transform: scale(0.4546);
+  transform-origin: top left;
+}
+
+.capability-live-link {
+  min-height: 38px;
+  border-top: 1px solid #3b3831;
+  color: var(--orange-bright);
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.capability-live-link:hover,
+.capability-live-link:focus-visible {
+  background: var(--orange);
+  color: #15130f;
+}
+
+body.home-view.light-theme .capability-live-demo,
+body.home-view.light-theme .capability-live-viewport {
+  background: #eee7da;
+}
+
+body.home-view.light-theme .capability-live-bar,
+body.home-view.light-theme .capability-live-link {
+  border-color: #cdbfae;
+  background: #f3ede2;
+  color: #5f574a;
+}
+
+body.home-view.light-theme .capability-live-link:hover,
+body.home-view.light-theme .capability-live-link:focus-visible {
+  background: var(--orange);
+  color: #fffaf2;
+}
+
 /* ── Engine badge strip ──────────────────────────────────────────────── */
 .engine-strip {
   display: flex;

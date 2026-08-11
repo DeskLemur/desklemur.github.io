@@ -8,7 +8,7 @@
       )
     : [];
 
-  const ASSET_DIR = "./docs/assets/Documentation";
+  const CAPABILITY_ASSET_DIR = "./assets/capabilities";
   const LIGHT_ART_DIR = "./assets/light";
   let productTheme =
     window.localStorage.getItem("deskle-mur-os-product-theme") === "light"
@@ -59,6 +59,10 @@
     return `${base}/${encodeURIComponent(fileName)}`;
   }
 
+  function runtimeTraceUrl() {
+    return `./live/system_graph.html?theme=ember${isLightTheme() ? "&light_mode=true" : ""}&v=runtime-trace-live-20260811`;
+  }
+
   function applyPageTheme(page) {
     const marketing = page === "home" || page === "vision";
     const lightHome = marketing && isLightTheme();
@@ -86,37 +90,37 @@
       index: "01",
       title: "Models",
       body: "Nearly any local engine or model can drive the runtime — in-process (MLX), local servers (llama.cpp, LM Studio, Ollama, vLLM), and various compatible local API endpoints, adapted per model via channel and protocol overrides. Web API integrations are experimental and used at your sole responsibility.",
-      image: "2.3 LLM Engine Settings.png",
+      image: "models.webp",
     },
     {
       index: "02",
       title: "Agents",
       body: "Create independent AI instances and coordinate them through collaboration or debate workflows.",
-      image: "2.2 Multi-Agent Management AI instances Active agents.png",
+      image: "agents.webp",
     },
     {
       index: "03",
       title: "Tools",
       body: "Execute tools autonomously, in parallel batches, or as dependent pipelines with reusable recipes.",
-      image: "2.6 Tool and Permission System.png",
+      image: "tools.webp",
     },
     {
       index: "04",
       title: "Memory",
       body: "Control warm memory, STM, LTM, recall profiles, graph links, and per-step evidence retention.",
-      image: "2.5 Memory System.png",
+      image: "memory.webp",
     },
     {
       index: "05",
       title: "Security",
       body: "Define permission policy per tool and move explicitly between sandboxed and system-level access.",
-      image: "2.7 Security Levels.png",
+      image: "security.webp",
     },
     {
       index: "06",
       title: "Observability",
       body: "Inspect plans, raw model output, protocol routing, tool calls, tokens, guards, and runtime load.",
-      image: "2.9 System Graph — Runtime Trace.png",
+      liveDemo: true,
     },
   ];
 
@@ -800,16 +804,30 @@
 
     const capabilityCards = capabilities
       .map(
-        ({ index, title, body, image }) => `
+        ({ index, title, body, image, liveDemo }) => `
           <article class="capability-card">
             <span class="card-index">${index}</span>
             <h3>${title}</h3>
             <p>${body}</p>
-            ${
-              image
-                ? `<span class="capability-shot"><img src="${ASSET_DIR}/${encodeURIComponent(image)}" alt="${escapeHtml(title)} screenshot" loading="lazy" /></span>`
-                : ""
-            }
+            ${image
+              ? `<span class="capability-shot"><img src="${CAPABILITY_ASSET_DIR}/${encodeURIComponent(image)}" alt="${escapeHtml(title)} screenshot" loading="lazy" /></span>`
+              : ""}
+            ${liveDemo
+              ? `<div class="capability-shot capability-live-demo">
+                  <div class="capability-live-bar">
+                    <span>RUNTIME TRACE</span>
+                    <span><i></i> LIVE</span>
+                  </div>
+                  <div class="capability-live-viewport">
+                    <iframe
+                      src="${runtimeTraceUrl()}"
+                      title="DeskLemurOS Runtime Trace live demo"
+                      loading="lazy"
+                    ></iframe>
+                  </div>
+                  <a class="capability-live-link" href="#observability">OPEN FULL LIVE DEMO <span>↘</span></a>
+                </div>`
+              : ""}
           </article>
         `,
       )
@@ -1037,7 +1055,7 @@
 
               <div class="live-embed">
                 <iframe
-                  src="./live/system_graph.html?theme=ember${isLightTheme() ? "&light_mode=true" : ""}&v=light-theme-20260727"
+                  src="${runtimeTraceUrl()}"
                   title="DeskLemurOS System Graph live demo"
                   loading="lazy"
                 ></iframe>

@@ -3,8 +3,6 @@
 ©️ Contact : DeskLemurOS@outlook.com
 END-COPYRIGHT */
 
-@import url("./dashboard_theme_tokens.css?v=light-contrast-20260722");
-
 :root {
             --bg-color: #0a0a12;
             --panel-bg: rgba(20, 20, 35, 0.6);
