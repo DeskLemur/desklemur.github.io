@@ -28,7 +28,8 @@ window.DESKLEMUR_SITE = {
       "security": true,
       "vision": true,
       "releases": true,
-      "documentation": false
+      "documentation": false,
+      "early_access": false
     }
   },
   "products": [

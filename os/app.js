@@ -907,7 +907,7 @@
 
               <div class="hero-terminal">
                 <span>$</span>
-                <code>deskle-mur-os run --mode local --trace live</code>
+                <code>desklemur-os run --mode local --trace live</code>
               </div>
             </div>
 
@@ -1565,7 +1565,7 @@
               inspect. DeskLemurOS is being built as that operating AI orchestration system.
             </p>
             <div class="hero-actions">
-              <a class="button button-primary" data-scroll="early-access" href="#/vision">Become an early partner</a>
+              ${featureEnabled("early_access") ? '<a class="button button-primary" data-scroll="early-access" href="#/vision">Become an early partner</a>' : ""}
               <a class="button button-secondary" href="#/">Back to overview</a>
             </div>
           </div>
@@ -1849,7 +1849,7 @@
           </div>
         </section>
 
-        <section class="final-cta" id="early-access">
+        ${featureEnabled("early_access") ? `<section class="final-cta" id="early-access">
           <div class="container">
             <div class="eyebrow">EARLY USERS · TECHNICAL PARTNERS · CO-DEVELOPERS</div>
             <h2>We’re looking for our first users and co-developers.</h2>
@@ -1878,7 +1878,7 @@
             </div>
             <p class="vision-tagline">Operate Intelligence. Own the System.</p>
           </div>
-        </section>
+        </section>` : ""}
       </main>
 
       <footer class="site-footer">
