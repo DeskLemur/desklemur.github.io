@@ -10,6 +10,36 @@
   const site = window.DESKLEMUR_SITE && typeof window.DESKLEMUR_SITE === "object"
     ? window.DESKLEMUR_SITE
     : null;
+  const cache = site?.cache || {};
+
+  const cacheUrl = (value) => {
+    const url = String(value || "");
+    if (!url || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(url)) return url;
+    const [beforeHash, hash = ""] = url.split("#", 2);
+    const [path, query = ""] = beforeHash.split("?", 2);
+    const key = decodeURIComponent(path).replace(/^\.\//, "");
+    const version = cache.assets?.[key] || cache.version;
+    if (!version) return url;
+    const params = new URLSearchParams(query);
+    params.set("v", version);
+    return `${path}?${params.toString()}${hash ? `#${hash}` : ""}`;
+  };
+
+  const refreshForNewVersion = () => {
+    const current = cache.version;
+    if (!current || !window.fetch) return;
+    fetch("./site-version.json", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((manifest) => {
+        const next = manifest?.version;
+        if (!next || next === current) return;
+        const key = `desklemur-refreshed:${next}`;
+        if (window.sessionStorage.getItem(key)) return;
+        window.sessionStorage.setItem(key, "1");
+        window.location.reload();
+      })
+      .catch(() => {});
+  };
 
   const escapeHtml = (value) => String(value)
     .replaceAll("&", "&amp;")
@@ -60,7 +90,7 @@
     const year = configValue("site.copyright_year") || new Date().getFullYear();
     productDropdown.innerHTML = `${products.map((product) => `
       <a class="product-entry" href="${escapeHtml(product.url)}">
-        <img src="${escapeHtml(product.icon)}" alt="" />
+        <img src="${escapeHtml(cacheUrl(product.icon))}" alt="" />
         <span><b>${escapeHtml(product.name)}</b><small>${escapeHtml(product.subtitle)}</small></span>
         <i aria-hidden="true">↗</i>
       </a>
@@ -85,6 +115,7 @@
     window.localStorage.setItem(key, theme);
   };
   setTheme(window.localStorage.getItem(key) === "light" ? "light" : "dark");
+  refreshForNewVersion();
   hydrateSiteContent();
   applyFeatureVisibility();
   renderNews();

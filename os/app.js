@@ -10,6 +10,7 @@
 
   const CAPABILITY_ASSET_DIR = "./assets/capabilities";
   const LIGHT_ART_DIR = "./assets/light";
+  const cache = window.DESKLEMUR_SITE?.cache || {};
   let productTheme =
     window.localStorage.getItem("deskle-mur-os-product-theme") === "light"
       ? "light"
@@ -26,6 +27,35 @@
 
   function featureEnabled(name) {
     return window.DESKLEMUR_SITE?.features?.os?.[name] !== false;
+  }
+
+  function cacheUrl(value) {
+    const url = String(value);
+    if (!url || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(url)) return url;
+    const [beforeHash, hash = ""] = url.split("#", 2);
+    const [path, query = ""] = beforeHash.split("?", 2);
+    const normalized = decodeURIComponent(path).replace(/^\.\//, "");
+    const version = cache.assets?.[`os/${normalized}`] || cache.version;
+    if (!version) return url;
+    const params = new URLSearchParams(query);
+    params.set("v", version);
+    return `${path}?${params.toString()}${hash ? `#${hash}` : ""}`;
+  }
+
+  function refreshForNewVersion() {
+    const current = cache.version;
+    if (!current || !window.fetch) return;
+    fetch("../site-version.json", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((manifest) => {
+        const next = manifest?.version;
+        if (!next || next === current) return;
+        const key = `desklemur-refreshed:${next}`;
+        if (window.sessionStorage.getItem(key)) return;
+        window.sessionStorage.setItem(key, "1");
+        window.location.reload();
+      })
+      .catch(() => {});
   }
 
   function applyFeatureVisibility() {
@@ -46,21 +76,21 @@
   }
 
   function productIconPath() {
-    return isLightTheme() ? "./assets/icon_light.png" : "./assets/icon.png";
+    return cacheUrl(isLightTheme() ? "./assets/icon_light.png" : "./assets/icon.png");
   }
 
   function directionArtPath(fileName) {
     const base = isLightTheme() ? `${LIGHT_ART_DIR}/DIRECTION` : "./assets/DIRECTION";
-    return `${base}/${encodeURIComponent(fileName)}`;
+    return cacheUrl(`${base}/${encodeURIComponent(fileName)}`);
   }
 
   function rootArtPath(fileName) {
     const base = isLightTheme() ? LIGHT_ART_DIR : "./assets";
-    return `${base}/${encodeURIComponent(fileName)}`;
+    return cacheUrl(`${base}/${encodeURIComponent(fileName)}`);
   }
 
   function runtimeTraceUrl() {
-    return `./live/system_graph.html?theme=ember${isLightTheme() ? "&light_mode=true" : ""}&v=runtime-trace-live-20260811`;
+    return cacheUrl(`./live/system_graph.html?theme=ember${isLightTheme() ? "&light_mode=true" : ""}`);
   }
 
   function applyPageTheme(page) {
@@ -77,11 +107,11 @@
     );
     document.querySelector("#site-favicon")?.setAttribute(
       "href",
-      lightHome ? "./assets/icon_light.png" : "./assets/favicon.png",
+      cacheUrl(lightHome ? "./assets/icon_light.png" : "./assets/favicon.png"),
     );
     document.querySelector("#site-touch-icon")?.setAttribute(
       "href",
-      lightHome ? "./assets/icon_light.png" : "./assets/icon.png",
+      cacheUrl(lightHome ? "./assets/icon_light.png" : "./assets/icon.png"),
     );
   }
 
@@ -235,7 +265,7 @@
     );
     output = output.replace(
       /!\[([^\]]*)\]\(([^)\s]+)\)/g,
-      '<img class="docs-image" src="$2" alt="$1" loading="lazy" />',
+      (match, alt, source) => `<img class="docs-image" src="${cacheUrl(source)}" alt="${alt}" loading="lazy" />`,
     );
     output = output.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, href) =>
       href.startsWith("#")
@@ -810,7 +840,7 @@
             <h3>${title}</h3>
             <p>${body}</p>
             ${image
-              ? `<span class="capability-shot"><img src="${CAPABILITY_ASSET_DIR}/${encodeURIComponent(image)}" alt="${escapeHtml(title)} screenshot" loading="lazy" /></span>`
+              ? `<span class="capability-shot"><img src="${cacheUrl(`${CAPABILITY_ASSET_DIR}/${encodeURIComponent(image)}`)}" alt="${escapeHtml(title)} screenshot" loading="lazy" /></span>`
               : ""}
             ${liveDemo
               ? `<div class="capability-shot capability-live-demo">
@@ -1575,7 +1605,7 @@
           <div class="container narrow">
             <div class="section-kicker">FROM DISCOVERY TO ENGINEERING</div>
             <figure class="section-art vision-chapter-art art-right">
-              <img src="./assets/vision/discovery-to-engineering.png" alt="From scientific discovery to engineered local AI infrastructure" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/discovery-to-engineering.png")}" alt="From scientific discovery to engineered local AI infrastructure" loading="lazy" />
             </figure>
             <h2>Maxwell wrote the equations. Engineers built the electric age.</h2>
             <p class="section-description">
@@ -1604,7 +1634,7 @@
           <div class="container narrow">
             <div class="section-kicker">THE PROBLEM</div>
             <figure class="section-art vision-chapter-art art-left">
-              <img src="./assets/vision/capable-model-system.png" alt="A model core with disconnected system capabilities" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/capable-model-system.png")}" alt="A model core with disconnected system capabilities" loading="lazy" />
             </figure>
             <h2>A capable model alone is not a capable AI system.</h2>
             <p class="section-description">
@@ -1627,7 +1657,7 @@
           <div class="container narrow">
             <div class="section-kicker">WHY LOCAL — AND WHAT IT’S FOR</div>
             <figure class="section-art vision-chapter-art art-right">
-              <img src="./assets/vision/local-first-control.png" alt="A local AI workstation with a controlled external connection" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/local-first-control.png")}" alt="A local AI workstation with a controlled external connection" loading="lazy" />
             </figure>
             <h2>Local won’t out-reason a frontier model. That was never the point.</h2>
             <p class="section-description">
@@ -1658,7 +1688,7 @@
           <div class="container narrow">
             <div class="section-kicker">MULTI-AGENT COLLABORATION</div>
             <figure class="section-art vision-chapter-art art-left">
-              <img src="./assets/vision/multi-agent-collaboration.png" alt="Specialist agents collaborating through one orchestration hub" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/multi-agent-collaboration.png")}" alt="Specialist agents collaborating through one orchestration hub" loading="lazy" />
             </figure>
             <h2>Not one assistant, but many collaborating agents.</h2>
             <p class="section-description">
@@ -1684,7 +1714,7 @@
           <div class="container narrow">
             <div class="section-kicker">MEMORY WITH GOVERNANCE</div>
             <figure class="section-art vision-chapter-art art-right">
-              <img src="./assets/vision/memory-governance.png" alt="A governed multi-layer memory archive" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/memory-governance.png")}" alt="A governed multi-layer memory archive" loading="lazy" />
             </figure>
             <h2>Memory that remembers — and forgets when it should.</h2>
             <p class="section-description">
@@ -1709,7 +1739,7 @@
           <div class="container narrow">
             <div class="section-kicker">CAPABILITY WITH CONTROL</div>
             <figure class="section-art vision-chapter-art art-left">
-              <img src="./assets/vision/capability-control.png" alt="Visible boundaries and approval gates around an AI workspace" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/capability-control.png")}" alt="Visible boundaries and approval gates around an AI workspace" loading="lazy" />
             </figure>
             <h2>Powerful when needed. Restricted when not.</h2>
             <p class="section-description">
@@ -1738,7 +1768,7 @@
           <div class="container narrow">
             <div class="section-kicker">AN EXTENSIBLE FOUNDATION</div>
             <figure class="section-art vision-chapter-art art-right">
-              <img src="./assets/vision/extensible-foundation.png" alt="A modular local AI foundation with plug-in components" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/extensible-foundation.png")}" alt="A modular local AI foundation with plug-in components" loading="lazy" />
             </figure>
             <h2>Not one application — a foundation you extend.</h2>
             <p class="section-description">
@@ -1758,7 +1788,7 @@
           <div class="container narrow">
             <div class="section-kicker">FROM ONE MODEL TO MANY</div>
             <figure class="section-art vision-chapter-art art-left">
-              <img src="./assets/vision/one-model-to-many.png" alt="One runtime coordinating multiple specialist models" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/one-model-to-many.png")}" alt="One runtime coordinating multiple specialist models" loading="lazy" />
             </figure>
             <h2>Today, one model plays every agent. Next, each agent can bring its own.</h2>
             <p class="section-description">
@@ -1781,7 +1811,7 @@
           <div class="container narrow">
             <div class="section-kicker">MEMORY THAT LEARNS</div>
             <figure class="section-art vision-chapter-art art-right">
-              <img src="./assets/vision/memory-that-learns.png" alt="Validated experience becoming learning-ready model knowledge" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/memory-that-learns.png")}" alt="Validated experience becoming learning-ready model knowledge" loading="lazy" />
             </figure>
             <h2>Not retrieval. Real learning.</h2>
             <p class="section-description">
@@ -1804,7 +1834,7 @@
           <div class="container narrow">
             <div class="section-kicker">THE LONG-TERM QUESTION</div>
             <figure class="section-art vision-chapter-art art-left">
-              <img src="./assets/vision/observable-agi-loop.png" alt="A measurable and observable multi-agent improvement loop" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/observable-agi-loop.png")}" alt="A measurable and observable multi-agent improvement loop" loading="lazy" />
             </figure>
             <h2>The goal is an AGI loop — built step by step, verified at every stage.</h2>
             <p class="section-description">
@@ -1829,7 +1859,7 @@
           <div class="container narrow">
             <div class="section-kicker">RESPONSIBLE RELEASE</div>
             <figure class="section-art vision-chapter-art art-right">
-              <img src="./assets/vision/responsible-release.png" alt="A staged release process with visible validation gates" loading="lazy" />
+              <img src="${cacheUrl("./assets/vision/responsible-release.png")}" alt="A staged release process with visible validation gates" loading="lazy" />
             </figure>
             <h2>Open gradually. Prove continuously. Release responsibly.</h2>
             <p class="section-description">
@@ -1894,6 +1924,7 @@
   }
 
   function route() {
+    refreshForNewVersion();
     const hash = window.location.hash || "#/";
 
     if (hash.startsWith("#/docs") && featureEnabled("documentation")) {
