@@ -1944,7 +1944,11 @@
       renderHome();
     }
 
-    if (!hash.includes("#runtime") && !hash.includes("#observability")) {
+    const isVirtualPage =
+      hash === "#/" ||
+      hash.startsWith("#/docs") ||
+      hash.startsWith("#/vision");
+    if (isVirtualPage) {
       window.scrollTo(0, 0);
     }
   }

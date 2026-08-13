@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "86ce83b8c2be56dc",
+    "version": "70273445e61e079a",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -85,7 +85,7 @@ window.DESKLEMUR_SITE = {
       "os/_media/img030.png": "b33f26d52f9f18bf",
       "os/_media/img031.png": "076c2686b3162778",
       "os/_media/img032.png": "17c91008b0bf7c93",
-      "os/app.js": "96a5c321b305871e",
+      "os/app.js": "af6d367ff3b5034a",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
