@@ -7,6 +7,8 @@
   const label = document.querySelector(".theme-label");
   const newsList = document.querySelector("[data-news-list]");
   const productDropdown = document.querySelector("[data-product-dropdown]");
+  const productMenu = document.querySelector(".product-menu");
+  const productTrigger = document.querySelector(".product-trigger");
   const site = window.DESKLEMUR_SITE && typeof window.DESKLEMUR_SITE === "object"
     ? window.DESKLEMUR_SITE
     : null;
@@ -120,12 +122,22 @@
   applyFeatureVisibility();
   renderNews();
   toggle?.addEventListener("click", () => setTheme(root.classList.contains("light-theme") ? "dark" : "light"));
+  const setProductOpen = (open) => {
+    productMenu?.classList.toggle("product-open", open);
+    productTrigger?.setAttribute("aria-expanded", String(open));
+  };
+  productTrigger?.addEventListener("click", () => {
+    if (!window.matchMedia("(max-width: 1180px)").matches) return;
+    setProductOpen(!productMenu?.classList.contains("product-open"));
+  });
   menu?.addEventListener("click", () => {
     const open = header?.classList.toggle("menu-open");
     menu.setAttribute("aria-expanded", String(Boolean(open)));
+    if (!open) setProductOpen(false);
   });
   document.querySelectorAll(".main-nav a").forEach((link) => link.addEventListener("click", () => {
     header?.classList.remove("menu-open");
     menu?.setAttribute("aria-expanded", "false");
+    setProductOpen(false);
   }));
 })();

@@ -160,6 +160,10 @@ input {
   color: var(--orange-bright);
 }
 
+.mobile-parent-site-link {
+  display: none;
+}
+
 .docs-parent-link {
   display: inline-block;
   margin: 16px 0 4px;
@@ -1793,6 +1797,17 @@ input {
 
   .main-nav a {
     padding: 12px;
+  }
+
+  .main-nav .mobile-parent-site-link {
+    display: block;
+    margin-bottom: 8px;
+    padding: 12px;
+    border: 1px solid var(--line-bright);
+    color: var(--orange-bright);
+    font-family: "Courier New", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
   }
 
   .manifesto-grid,

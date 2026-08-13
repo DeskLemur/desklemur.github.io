@@ -494,6 +494,7 @@
           </button>
 
           <nav class="main-nav" aria-label="Primary navigation">
+            <a class="mobile-parent-site-link" href="../index.html">← DeskLemur</a>
             ${featureEnabled("runtime") ? '<a href="#runtime">Runtime</a>' : ""}
             ${featureEnabled("tools") ? '<a href="#tools">Tools</a>' : ""}
             ${featureEnabled("system_graph") ? '<a href="#observability">System Graph</a>' : ""}

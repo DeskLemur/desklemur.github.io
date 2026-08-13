@@ -41,14 +41,14 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "751d1678509b74be",
+    "version": "56ff68b05d694a64",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
       "assets/signal-lemur.png": "6eed5dd2f9e4a0f5",
       "desklemur-mark.png": "379e0ee2654109b5",
-      "home.css": "0d557deff5a9ff1f",
-      "home.js": "b7aaea568e425c8f",
+      "home.css": "28a7e481e818f8cc",
+      "home.js": "d31ed818bbfb90d1",
       "news.config.json": "f005798d72457e3b",
       "og.png": "7cde432b7eea1eac",
       "os/LOCALLM_OS_Home_Light.png": "0f23ea964ec18903",
@@ -85,7 +85,7 @@ window.DESKLEMUR_SITE = {
       "os/_media/img030.png": "b33f26d52f9f18bf",
       "os/_media/img031.png": "076c2686b3162778",
       "os/_media/img032.png": "17c91008b0bf7c93",
-      "os/app.js": "19a9ea29be7c0ba2",
+      "os/app.js": "96a5c321b305871e",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
@@ -162,7 +162,7 @@ window.DESKLEMUR_SITE = {
       "os/live/system_graph.css": "3a9f5d358daf25be",
       "os/live/system_graph.js": "d6be21372d0ef3c1",
       "os/live/tauri_bridge.js": "8615ea348012412b",
-      "os/styles.css": "62ff63174150543e",
+      "os/styles.css": "d88ab080fbe87e61",
       "publish.local.json": "60a175e2756e5d4f",
       "site.config.json": "459d0c94ea976940"
     }
