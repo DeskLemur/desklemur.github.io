@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "56ff68b05d694a64",
+    "version": "86ce83b8c2be56dc",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -49,7 +49,7 @@ window.DESKLEMUR_SITE = {
       "desklemur-mark.png": "379e0ee2654109b5",
       "home.css": "28a7e481e818f8cc",
       "home.js": "d31ed818bbfb90d1",
-      "news.config.json": "f005798d72457e3b",
+      "news.config.json": "a6e02f9774fb7237",
       "og.png": "7cde432b7eea1eac",
       "os/LOCALLM_OS_Home_Light.png": "0f23ea964ec18903",
       "os/LOCALLM_OS_Vision_Light.png": "1f2bce1b00d6e2e8",
@@ -155,7 +155,7 @@ window.DESKLEMUR_SITE = {
       "os/docs/assets/Documentation/2.6 Tool and Permission System.png": "a01ac5d175db0f6e",
       "os/docs/assets/Documentation/2.7 Security Levels.png": "63558525102d80a3",
       "os/docs/assets/Documentation/2.8 File Workspace.png": "39ea84de0f445004",
-      "os/docs/assets/Documentation/2.9 System Graph — Runtime Trace.png": "c49de8877d463c3a",
+      "os/docs/assets/Documentation/2.9 System Graph — Runtime Trace.png": "edb4100aa333bf03",
       "os/docs/assets/Documentation/Screenshot 2026-07-26 at 1.41.37 AM.png": "0519e5f394aa932e",
       "os/docs-data.js": "9103354da6dd9652",
       "os/live/demo_feed.js": "d2e3ee8af6a2896b",
