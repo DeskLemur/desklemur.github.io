@@ -2,8 +2,8 @@
   "use strict";
 
   const app = document.querySelector("#app");
-  const docs = Array.isArray(window.LOCALLM_DOCS)
-    ? [...window.LOCALLM_DOCS].sort((a, b) =>
+  const docs = Array.isArray(window.DESKLEMUR_OS_DOCS)
+    ? [...window.DESKLEMUR_OS_DOCS].sort((a, b) =>
         String(a.path).localeCompare(String(b.path)),
       )
     : [];

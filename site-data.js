@@ -9,7 +9,7 @@ window.DESKLEMUR_SITE = {
     "hero_kicker": "LOCAL AI SYSTEMS STUDIO",
     "hero_title": "Local intelligence,",
     "hero_title_accent": "made operable.",
-    "hero_lead": "DeskLemur builds software for AI systems you can run, inspect, and own — close to the people and machines that depend on them.",
+    "hero_lead": "DeskLemur builds local AI systems you can run, inspect, automate, and own — agents, tools, memory, and live runtime traces close to the people and machines that depend on them.",
     "hero_cta_label": "Explore DeskLemurOS",
     "footer_tagline": "Independent systems for an intelligent future."
   },
@@ -35,13 +35,13 @@ window.DESKLEMUR_SITE = {
   "products": [
     {
       "name": "DeskLemurOS",
-      "subtitle": "Local agent runtime",
+      "subtitle": "Local AI orchestration runtime",
       "url": "./os/index.html",
       "icon": "./os/assets/icon.png"
     }
   ],
   "cache": {
-    "version": "70273445e61e079a",
+    "version": "1ea7948502fa61bd",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -71,7 +71,7 @@ window.DESKLEMUR_SITE = {
       "os/_media/img016.png": "a01ac5d175db0f6e",
       "os/_media/img017.png": "63558525102d80a3",
       "os/_media/img018.png": "39ea84de0f445004",
-      "os/_media/img019.png": "c49de8877d463c3a",
+      "os/_media/img019.png": "edb4100aa333bf03",
       "os/_media/img020.png": "1b9ed25b435b4a47",
       "os/_media/img021.png": "eaf210237523a5b6",
       "os/_media/img022.png": "3681b5c8a752d6f0",
@@ -85,7 +85,7 @@ window.DESKLEMUR_SITE = {
       "os/_media/img030.png": "b33f26d52f9f18bf",
       "os/_media/img031.png": "076c2686b3162778",
       "os/_media/img032.png": "17c91008b0bf7c93",
-      "os/app.js": "af6d367ff3b5034a",
+      "os/app.js": "3bce3dfa7461f30f",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
@@ -157,14 +157,14 @@ window.DESKLEMUR_SITE = {
       "os/docs/assets/Documentation/2.8 File Workspace.png": "39ea84de0f445004",
       "os/docs/assets/Documentation/2.9 System Graph — Runtime Trace.png": "edb4100aa333bf03",
       "os/docs/assets/Documentation/Screenshot 2026-07-26 at 1.41.37 AM.png": "0519e5f394aa932e",
-      "os/docs-data.js": "9103354da6dd9652",
+      "os/docs-data.js": "5e07b30ac3a5cfd9",
       "os/live/demo_feed.js": "d2e3ee8af6a2896b",
       "os/live/system_graph.css": "3a9f5d358daf25be",
       "os/live/system_graph.js": "d6be21372d0ef3c1",
       "os/live/tauri_bridge.js": "8615ea348012412b",
       "os/styles.css": "d88ab080fbe87e61",
       "publish.local.json": "60a175e2756e5d4f",
-      "site.config.json": "459d0c94ea976940"
+      "site.config.json": "4990ce9e0e8f3379"
     }
   }
 };
