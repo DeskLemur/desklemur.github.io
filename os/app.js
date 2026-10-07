@@ -126,7 +126,7 @@
     {
       index: "01",
       title: "Models",
-      body: "Connect a compatible local server or use the available managed engine controls. Tune model output and planner protocols for your setup.",
+      body: "Standard and Pro use bundled in-app llama.cpp only. Ultimate and Developer also support compatible local or LAN servers and engine/provider choice.",
       image: "models.webp",
     },
     {
@@ -558,7 +558,7 @@
     const entries = [
       ['workflows', 'Workflows'], ['runtime', 'Runtime', 'runtime'],
       ['capabilities', 'Models & tools'], ['memory', 'Memory'],
-      ['security', 'Permissions', 'security'], ['faq', 'Questions'],
+      ['security', 'Permissions', 'security'], ['editions', 'Editions'], ['faq', 'Questions'],
     ].filter(([, , feature]) => !feature || featureEnabled(feature));
     return `<nav class="product-jump" aria-label="Explore this product"><div class="container">${entries.map(([id, label]) => `<a href="#/#${id}">${label}</a>`).join('')}</div></nav>`;
   }
@@ -589,10 +589,26 @@
     </div></section>`;
   }
 
+  function editionsTemplate() {
+    const guide = window.DESKLEMUR_EDITION_GUIDE;
+    if (!guide || !Array.isArray(guide.editions) || !Array.isArray(guide.rows)) return '';
+    const editions = guide.editions;
+    return `<section class="section editions-section" id="editions" aria-labelledby="editions-title"><div class="container">
+      <div class="section-heading"><div><div class="section-kicker">FOUR EDITIONS</div><h2 id="editions-title">Choose how you want to work.</h2></div><p>From bundled local inference to individual model routes and research controls. Compare the features included in each edition.</p></div>
+      <div class="edition-cards">${editions.map(edition => `<article class="edition-card"><span class="edition-card-label">${edition.id === 'developer' ? 'RESEARCH & DEVELOPMENT' : 'DESKLEMUROS'}</span><h3>${escapeHtml(edition.name)}</h3><p>${escapeHtml(edition.summary)}</p></article>`).join('')}</div>
+      <p class="edition-engine-note"><strong>Standard and Pro use bundled in-app llama.cpp only.</strong> Existing model servers, other engines, and web-provider routes require Ultimate or Developer. Connected tools and the optional chat API are separate from model inference.</p>
+      <details class="edition-comparison"><summary>Compare features across editions <span>Model connections, task state, and research tools</span></summary>
+        <p class="edition-table-hint" id="edition-table-hint">On smaller screens, scroll the comparison horizontally to see every edition.</p>
+        <div class="edition-table-scroll" tabindex="0" role="region" aria-label="Edition feature comparison" aria-describedby="edition-table-hint"><table class="edition-table"><caption>Feature availability by edition</caption><thead><tr><th scope="col">Feature</th>${editions.map(edition=>`<th scope="col">${escapeHtml(edition.name)}</th>`).join('')}</tr></thead><tbody>${guide.rows.map(row=>`<tr><th scope="row">${escapeHtml(row.label)}${row.description ? `<span>${escapeHtml(row.description)}</span>` : ''}</th>${editions.map(edition=>`<td>${escapeHtml(String(row.values?.[edition.id] ?? '—'))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+        <div class="edition-notes">${(guide.notes || []).map(note=>`<article><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.body || note.text || '')}</p></article>`).join('')}</div>
+      </details>
+    </div></section>`;
+  }
+
   function faqTemplate() {
     const entries = [
       ['Does local-first mean every task stays offline?', 'Local model inference can run on your machine. Web research, remote MCP servers, model downloads, and configured web providers can contact external services. Review the connections and tools enabled for your task.'],
-      ['Can I use a model server I already have?', 'The app can connect to supported local or LAN servers, including llama.cpp, MLX, LM Studio, Ollama, and vLLM. Use the endpoint and model ID actually served by your setup. Managed and in-app engine options depend on the platform and edition.'],
+      ['Can I use a model server I already have?', 'Standard and Pro use bundled in-app llama.cpp only and cannot connect to an existing model server. Ultimate and Developer can connect to supported local or LAN servers, including llama.cpp, MLX, LM Studio, Ollama, and vLLM. Use the endpoint and model ID actually served by your setup.'],
       ['Can each agent use a different model?', 'Agents inherit the workspace model by default. Ultimate / Developer editions provide individual engine and model routes. You still need an available server and enough resources for the models you choose.'],
       ['What do memory edits change?', 'The profile-memory manager lets you select an agent and review what it has learned about you. Editing can change future recall; Forget removes the selected profile memory. It does not erase your chat history or another agent’s profile memories.'],
       ['Does a benchmark prove a tool action will succeed?', 'Protocol and MCP benchmarks evaluate generated output, parsing, or argument validity. MCP argument measurements do not execute the tools. A valid argument or high score is useful evidence, but a real task also needs the right action and a verified result.'],
@@ -697,6 +713,7 @@
           <nav class="main-nav" id="product-navigation" aria-label="Primary navigation">
             <a class="mobile-parent-site-link" href="../index.html">← DeskLemur</a>
             <a href="#/">Product</a>
+            <a href="#/#editions">Editions</a>
             ${featureEnabled("runtime") ? '<a href="#/#runtime">How it works</a>' : ""}
             ${featureEnabled("vision") ? '<a href="#/vision">Vision</a>' : ""}
             ${featureEnabled("releases") ? '<a href="#/#release-notes">Updates</a>' : ""}
@@ -1186,10 +1203,10 @@
               ${capabilityCards}
             </div>
 
-            <div class="engine-strip" aria-label="Supported local engines and API compatibility">
-              <span class="engine-strip-label">LOCAL API READY</span>
+            <div class="engine-strip" aria-label="Local engines available in Ultimate and Developer">
+              <span class="engine-strip-label">ULTIMATE / DEVELOPER</span>
               ${engineStrip}
-              <span class="engine-strip-note">Various compatible local API servers are supported. Web API integrations are <b>experimental</b>, may not work as expected, and are used at your sole responsibility.</span>
+              <span class="engine-strip-note">Standard and Pro use bundled in-app llama.cpp only. Ultimate and Developer also support these local API engines. Web API integrations are <b>experimental</b>, may not work as expected, and are used at your sole responsibility.</span>
             </div>
           </div>
         </section>
@@ -1434,7 +1451,7 @@
 
               <p>
                 Apple Silicon systems, including Mac Studio, and supported
-                NVIDIA or AMD setups can host local model servers. DeskLemurOS
+                NVIDIA or AMD setups can host local model servers for Ultimate and Developer. DeskLemurOS
                 connects the model to agents, memory, and the tools you choose.
               </p>
 
@@ -1512,6 +1529,7 @@
           </div>
         </section>
 
+        ${editionsTemplate()}
         ${faqTemplate()}
         <section class="final-cta">
           <div class="container">

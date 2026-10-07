@@ -2886,3 +2886,44 @@ body.home-view.light-theme .lightbox-footer a { color: #944019; }
   .security-level > p { grid-column: 2; overflow-wrap: anywhere; }
   .security-map-scale { white-space: normal; flex-wrap: wrap; line-height: 1.8; }
 }
+
+/* The same edition guide is used in the desktop app and on this page. */
+.editions-section { border-top: 1px solid var(--line); }
+.edition-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 36px; }
+.edition-card { padding: 26px 23px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.edition-card-label { display: block; min-height: 2.7em; color: var(--orange-bright); font: .64rem/1.5 'Courier New', monospace; letter-spacing: .08em; }
+.edition-card h3 { font-size: 1.55rem; margin: 10px 0 16px; }
+.edition-card p, .edition-engine-note, .edition-notes p { color: var(--muted); font-size: .88rem; line-height: 1.75; margin: 0; }
+.edition-engine-note { padding: 20px 24px; margin: 24px 0; border-left: 2px solid var(--orange); background: var(--panel); }
+.edition-engine-note strong { color: var(--text); }
+.edition-comparison { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.edition-comparison > summary { padding: 22px 24px; font-weight: 650; cursor: pointer; line-height: 1.5; }
+.edition-comparison > summary::marker { color: var(--orange-bright); }
+.edition-comparison > summary span { display: block; margin: 5px 0 0 19px; font-size: .78rem; font-weight: 400; color: var(--muted); }
+.edition-table-hint { margin: 0; padding: 0 24px 18px; color: var(--muted); font-size: .75rem; line-height: 1.6; }
+.edition-table-scroll { overflow-x: auto; overscroll-behavior-x: contain; }
+.edition-table-scroll:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+.edition-table { width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; text-align: left; font-size: .8rem; line-height: 1.6; }
+.edition-table caption { text-align: left; padding: 0 24px 16px; color: var(--text); font-weight: 600; }
+.edition-table th, .edition-table td { border-top: 1px solid var(--line); padding: 17px 18px; vertical-align: top; overflow-wrap: anywhere; }
+.edition-table thead th { background: var(--panel); color: var(--orange-bright); }
+.edition-table th:first-child { width: 27%; }
+.edition-table tbody th { font-weight: 600; }
+.edition-table tbody th span { display: block; margin-top: 6px; color: var(--muted); font-weight: 400; font-size: .74rem; }
+.edition-table td { color: var(--muted); }
+.edition-notes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 34px; padding: 28px 24px; border-top: 1px solid var(--line); background: var(--panel); }
+.edition-notes h3 { font-size: .9rem; margin: 0 0 8px; }
+@media (min-width: 801px) and (max-width: 1080px) {
+  .home-view .parent-site-link { display: none; }
+  .home-view .main-nav { gap: 15px; }
+}
+@media (max-width: 1000px) {
+  .edition-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .edition-cards, .edition-notes { grid-template-columns: 1fr; }
+  .edition-card { padding: 22px; }
+  .edition-card-label { min-height: 0; }
+  .edition-comparison > summary, .edition-engine-note { padding: 18px; }
+  .edition-table th, .edition-table td { padding: 14px; }
+}
