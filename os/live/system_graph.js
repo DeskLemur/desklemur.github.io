@@ -1,8 +1,5 @@
 const queryParams = new URLSearchParams(window.location.search);
 let latestSystemData = null;
-let metricsSyncTimer = null;
-let metricsSyncInFlight = false;
-let metricsSyncStopped = false;
 let activeTheme = queryParams.get('theme') || 'ember';
 let activeLightMode = (
     queryParams.get('light_mode') ||
@@ -52,40 +49,7 @@ let traceEventSeq = 0;
 const traceRawOpenKeys = new Set();
 const recentTerminalTraceKeys = new Map();
 
-function getTauriInvoke() {
-    return window.__TAURI__?.core?.invoke || window.__TAURI__?.invoke || null;
-}
-
-function isDesktopBridgeReady() {
-    return !!getTauriInvoke();
-}
-
-async function waitForDesktopBridge(timeoutMs = 5000) {
-    if (isDesktopBridgeReady()) return true;
-    return new Promise(resolve => {
-        const started = Date.now();
-        const tick = () => {
-            if (isDesktopBridgeReady()) return resolve(true);
-            if (Date.now() - started >= timeoutMs) return resolve(false);
-            setTimeout(tick, 50);
-        };
-        tick();
-    });
-}
-
-async function apiRequest(method, path, body = null) {
-    const invoke = getTauriInvoke();
-    if (invoke) return invoke('api_request', { method, path, body });
-    const response = await fetch(path, {
-        method,
-        cache: 'no-store',
-        headers: body === null ? undefined : { 'Content-Type': 'application/json' },
-        body: body === null ? undefined : JSON.stringify(body),
-    });
-    if (!response.ok) throw new Error(`${method} ${path} failed: HTTP ${response.status}`);
-    return response.json();
-}
-
+// This public renderer consumes local illustrative events only.
 function applyTheme(theme = activeTheme, lightMode = activeLightMode) {
     activeTheme = theme || 'ember';
     activeLightMode = !!lightMode;
@@ -96,25 +60,14 @@ function applyTheme(theme = activeTheme, lightMode = activeLightMode) {
 
 function bindThemeSync() {
     applyTheme();
-    if (typeof BroadcastChannel !== 'undefined') {
-        const channel = new BroadcastChannel('locallm_theme');
-        channel.onmessage = event => {
-            const state = event.data || {};
-            applyTheme(state.theme || activeTheme, !!state.lightMode);
-        };
-    }
 }
 
-async function resetLlmUsage() {
-    try {
-        const result = await apiRequest('POST', '/api/reset_llm_usage', {});
-        if (result?.status === 'success') {
-            latestSystemData = {...(latestSystemData || {}), llm: result.llm || {}};
-            renderMetrics(latestSystemData);
-        }
-    } catch (error) {
-        console.error("LLM usage reset failed:", error);
-    }
+function resetLlmUsage() {
+    Object.keys(derivedLlmPulse).forEach(key => {
+        const value = derivedLlmPulse[key];
+        derivedLlmPulse[key] = typeof value === 'number' ? 0 : typeof value === 'boolean' ? false : '';
+    });
+    window.dispatchEvent(new Event('desklemur-demo-reset-tokens'));
 }
 
 function setText(id, value) {
@@ -1756,10 +1709,6 @@ function bindTraceEventStream() {
     renderTraceInspector();
     renderTraceTimeline();
     drawTraceGraph();
-    if (typeof BroadcastChannel !== 'undefined') {
-        const channel = new BroadcastChannel('locallm_agent_events');
-        channel.onmessage = event => handleTraceEvent(event.data || {});
-    }
 }
 
 // --- Background Animation (Simple Particles) ---
@@ -1832,8 +1781,8 @@ function bindTraceEventStream() {
             drawLines();
             requestAnimationFrame(animateBg);
         }
-        window.addEventListener('resize', resizeBg);
-        initBg();
+        // Decorative particles stay off in the public demonstration.
+        bgCanvas.hidden = true;
 
         // --- Neural Modal & Graph Logic (Vanilla JS Force-Directed Graph) ---
         const modal = document.getElementById('neuralModal');
@@ -2132,44 +2081,6 @@ function renderMetrics(systemData = {}) {
     setText('runtime-health', cpuValue < 80 && ramValue < 80 ? 'NORMAL' : 'HIGH LOAD');
 }
 
-async function syncMetrics() {
-    if (metricsSyncStopped || metricsSyncInFlight) return;
-    metricsSyncInFlight = true;
-    try {
-        const bridgeReady = await waitForDesktopBridge();
-        if (!bridgeReady) {
-            setText('runtime-summary', 'Runtime bridge not ready');
-            return;
-        }
-        latestSystemData = await apiRequest('GET', '/api/system_metrics');
-        if (metricsSyncStopped) return;
-        renderMetrics(latestSystemData);
-    } catch (error) {
-        console.error("Metric sync failed:", error);
-        setText('runtime-summary', `Runtime load failed: ${error?.message || error}`);
-    } finally {
-        metricsSyncInFlight = false;
-    }
-}
-
-function stopMetricsSync() {
-    metricsSyncStopped = true;
-    if (metricsSyncTimer) {
-        clearInterval(metricsSyncTimer);
-        metricsSyncTimer = null;
-    }
-}
-
-function startMetricsSync() {
-    if (metricsSyncTimer || metricsSyncStopped) return;
-    syncMetrics();
-    metricsSyncTimer = setInterval(syncMetrics, 1200);
-}
-
 bindThemeSync();
 bindTraceEventStream();
 window.addEventListener('resize', drawTraceGraph);
-window.addEventListener('DOMContentLoaded', () => setTimeout(startMetricsSync, 50));
-setTimeout(startMetricsSync, 250);
-window.addEventListener('pagehide', stopMetricsSync);
-window.addEventListener('beforeunload', stopMetricsSync);

@@ -1,5 +1,5 @@
 // Demo event feeder for the static product site.
-// Replays a real-looking run directly inside the embedded System Graph page.
+// Replays explicitly simulated events inside the public System Graph page.
 //
 // IMPORTANT:
 // This file intentionally does NOT use BroadcastChannel. The product demo is
@@ -73,7 +73,74 @@
     }
 
     const send = payload => dispatchTraceEvent(payload);
-    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sleepers = new Set();
+    let paused = true;
+    let parentPaused = false;
+    let manualPaused = false;
+    let motionOptIn = false;
+    let pageDeparted = false;
+    let metricsTimer = null;
+    let playbackReady = false;
+
+    function resumeSleeper(task) {
+        task.started = performance.now();
+        task.timer = setTimeout(() => {
+            task.timer = null;
+            sleepers.delete(task);
+            task.resolve();
+        }, task.remaining);
+    }
+
+    function sleep(ms) {
+        return new Promise(resolve => {
+            const task = { resolve, remaining: ms, started: 0, timer: null };
+            sleepers.add(task);
+            if (!paused) resumeSleeper(task);
+        });
+    }
+
+    function refreshPlayback() {
+        const nextPaused = pageDeparted || document.hidden || parentPaused || manualPaused ||
+            (motionPreference.matches && !motionOptIn);
+        document.body.classList.toggle('demo-paused', nextPaused);
+        const control = document.getElementById('demo-playback');
+        if (control) {
+            control.textContent = nextPaused ? 'PLAY REPLAY' : 'PAUSE REPLAY';
+            control.setAttribute('aria-pressed', String(nextPaused));
+        }
+        if (nextPaused === paused) return;
+        paused = nextPaused;
+        if (paused) {
+            clearInterval(metricsTimer);
+            metricsTimer = null;
+            sleepers.forEach(task => {
+                if (task.timer === null) return;
+                clearTimeout(task.timer);
+                task.timer = null;
+                task.remaining = Math.max(0, task.remaining - (performance.now() - task.started));
+            });
+        } else {
+            sleepers.forEach(resumeSleeper);
+            if (playbackReady) metricsTimer = setInterval(pushMetrics, 1400);
+        }
+    }
+
+    document.addEventListener('visibilitychange', refreshPlayback);
+    motionPreference.addEventListener('change', () => {
+        motionOptIn = false;
+        refreshPlayback();
+    });
+    window.addEventListener('message', event => {
+        const sameOrigin = event.origin === window.location.origin ||
+            (window.location.protocol === 'file:' && event.origin === 'null');
+        if (event.source !== window.parent || !sameOrigin ||
+            event.data?.type !== 'desklemur-demo-control' || typeof event.data.paused !== 'boolean') return;
+        parentPaused = event.data.paused;
+        refreshPlayback();
+    });
+    window.addEventListener('pagehide', () => { pageDeparted = true; refreshPlayback(); });
+    window.addEventListener('pageshow', () => { pageDeparted = false; refreshPlayback(); });
     const jitter = (base, spread) => base + Math.round((Math.random() - 0.5) * spread);
 
     // ── Fake runtime metrics (Runtime Load + LLM Pulse panels) ──────────
@@ -110,7 +177,7 @@
                 completion_tokens: llmState.completion_tokens,
                 total_tokens: llmState.prompt_tokens + llmState.completion_tokens,
                 last_engine: 'LOCAL_SERVER',
-                last_model: 'gemma4-26b-local',
+                last_model: 'illustrative-local-model',
                 last_latency_ms: jitter(420, 120),
                 last_tokens_per_second: 41.6,
                 last_pp_tokens_per_second: 512.4,
@@ -296,22 +363,53 @@
         }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(async () => {
-            const ready = await waitForTraceHandler();
-            if (!ready) return;
+    function showStaticSnapshot() {
+        currentRunId = 'illustrative-snapshot';
+        const scenario = SCENARIOS[0];
+        send({ type: 'user_submit', content: scenario.prompt, step: 0 });
+        send({ type: 'start', content: 'Illustrative run started.', step: 0 });
+        send({ type: 'memory_trace', memory_trace: {
+            passive_recall: 'hit', recall_profile: 'boot', ltm_count: 5, stm_count: 3,
+            graph_count: 4, refs_count: 2, graph_link_count: 4, warm_context: true,
+        } });
+        send({ type: 'plan', action: scenario.action, content: scenario.planText,
+            tool_label: scenario.toolLabel, step: 1 });
+        send({ type: 'final', content: `Illustrative result: ${scenario.final}` });
+        send({ type: 'end' });
+    }
 
-            try { if (typeof stopMetricsSync === 'function') stopMetricsSync(); } catch (_) {}
-            // The full-screen particle background is decorative and expensive
-            // inside a scaled iframe embed — disable it for the demo.
-            try {
-                if (Array.isArray(particles)) particles.length = 0;
-                const bg = document.getElementById('bg-canvas');
-                if (bg) { bg.style.display = 'none'; bg.width = 2; bg.height = 2; }
-            } catch (_) {}
-            pushMetrics();
-            setInterval(pushMetrics, 1400);
-            demoLoop();
-        }, 300);
+    window.addEventListener('DOMContentLoaded', async () => {
+        const ready = await waitForTraceHandler();
+        if (!ready) return;
+        showStaticSnapshot();
+        pushMetrics();
+        playbackReady = true;
+        document.getElementById('demo-playback')?.addEventListener('click', () => {
+            if (paused) {
+                manualPaused = false;
+                motionOptIn = true;
+            } else {
+                manualPaused = true;
+            }
+            refreshPlayback();
+        });
+        refreshPlayback();
+        // No polling is created until playback is allowed by page visibility,
+        // embedding page, user control, and the reduced-motion preference.
+        if (!paused && metricsTimer === null) metricsTimer = setInterval(pushMetrics, 1400);
+        demoLoop();
+        if (window.parent !== window) window.parent.postMessage(
+            { type: 'desklemur-demo-ready' },
+            window.location.protocol === 'file:' ? '*' : window.location.origin,
+        );
+    });
+
+    window.addEventListener('desklemur-demo-reset-tokens', () => {
+        llmState.requests = 0;
+        llmState.prompt_tokens = 0;
+        llmState.cached_prompt_tokens = 0;
+        llmState.completion_tokens = 0;
+        llmState.activeTokens = 0;
+        pushMetrics();
     });
 })();

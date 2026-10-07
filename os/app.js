@@ -13,10 +13,15 @@
   const CAPABILITY_ASSET_DIR = "./assets/capabilities";
   const LIGHT_ART_DIR = "./assets/light";
   const cache = window.DESKLEMUR_SITE?.cache || {};
-  let productTheme =
-    window.localStorage.getItem("deskle-mur-os-product-theme") === "light"
-      ? "light"
-      : "dark";
+  let productTheme = "dark";
+  try {
+    productTheme = (window.localStorage.getItem("desklemur-theme") ||
+      window.localStorage.getItem("deskle-mur-os-product-theme")) === "light" ? "light" : "dark";
+  } catch { /* Private browsing can disable persistent preferences. */ }
+  let marketingController = null;
+  let renderedMarketingPage = null;
+  let demoAnimationEnabled = false;
+  let focusMarketingDestination = false;
 
   function isLightTheme() {
     return productTheme === "light";
@@ -121,7 +126,7 @@
     {
       index: "01",
       title: "Models",
-      body: "Connect llama.cpp, MLX, LM Studio, Ollama, vLLM, or another compatible local server. Managed engines provide model controls; in-app llama.cpp is also available. Configure output channels and planner protocols separately. Web API integrations are experimental and used at your sole responsibility.",
+      body: "Connect a compatible local server or use the available managed engine controls. Tune model output and planner protocols for your setup.",
       image: "models.webp",
     },
     {
@@ -549,8 +554,123 @@
     return html.join("\n");
   }
 
+  function productJumpTemplate() {
+    const entries = [
+      ['workflows', 'Workflows'], ['runtime', 'Runtime', 'runtime'],
+      ['capabilities', 'Models & tools'], ['memory', 'Memory'],
+      ['security', 'Permissions', 'security'], ['faq', 'Questions'],
+    ].filter(([, , feature]) => !feature || featureEnabled(feature));
+    return `<nav class="product-jump" aria-label="Explore this product"><div class="container">${entries.map(([id, label]) => `<a href="#/#${id}">${label}</a>`).join('')}</div></nav>`;
+  }
+
+  const workflowExamples = [
+    { id: 'files', label: 'Files & reports', title: 'Turn source files into a reviewable result.',
+      prompt: 'Compare these project notes and write a brief in my workspace.',
+      steps: ['Choose the files and a permitted workspace.', 'Follow the plan, file reads, and output as the agent works.', 'Inspect the saved file and the evidence behind the answer.'],
+      result: 'A local artifact you can open, revise, and check.', target: 'runtime', feature: 'runtime', link: 'See the runtime' },
+    { id: 'connected', label: 'Connected tools', title: 'Work with the services you already use.',
+      prompt: 'Use my connected workspace to prepare a page from these notes.',
+      steps: ['Connect an MCP server and select its tools.', 'Review the available arguments and tool permissions.', 'Check the tool result and, where supported, read the change back.'],
+      result: 'Visible service activity, with results to verify.', target: 'tools', feature: 'tools', link: 'Explore tool connections' },
+    { id: 'continuity', label: 'Continuing work', title: 'Give the next task useful context.',
+      prompt: 'Continue our project using the decisions we kept from the last session.',
+      steps: ['Keep work associated with the intended agent and master profile.', 'Use recalled context alongside fresh task evidence.', 'Inspect and correct the selected agent’s profile memories when needed.'],
+      result: 'Continuity you can inspect and adjust.', target: 'memory', link: 'Explore memory' },
+  ];
+
+  function workflowTemplate() {
+    return `<section class="section workflow-section" id="workflows"><div class="container">
+      <div class="section-heading"><div><div class="section-kicker">START WITH YOUR WORK</div><h2>What would you like to get done?</h2></div><p>Three ways to use the same workspace. These are example workflows; available actions depend on your model, edition, and configured tools.</p></div>
+      <div class="workflow-tabs" role="tablist" aria-label="Example workflows">${workflowExamples.map((item, i) => `<button type="button" role="tab" id="workflow-tab-${item.id}" aria-controls="workflow-${item.id}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${item.label}</button>`).join('')}</div>
+      ${workflowExamples.map((item, i) => `<div class="workflow-panel" role="tabpanel" tabindex="0" id="workflow-${item.id}" aria-labelledby="workflow-tab-${item.id}"${i ? ' hidden' : ''}>
+        <div class="workflow-request"><span>EXAMPLE REQUEST</span><p>“${item.prompt}”</p><small>${item.result}</small></div>
+        <div class="workflow-steps"><h3>${item.title}</h3><ol>${item.steps.map(step => `<li>${step}</li>`).join('')}</ol>${!item.feature || featureEnabled(item.feature) ? `<a href="#/#${item.target}">${item.link} <span aria-hidden="true">→</span></a>` : ''}</div>
+      </div>`).join('')}
+    </div></section>`;
+  }
+
+  function faqTemplate() {
+    const entries = [
+      ['Does local-first mean every task stays offline?', 'Local model inference can run on your machine. Web research, remote MCP servers, model downloads, and configured web providers can contact external services. Review the connections and tools enabled for your task.'],
+      ['Can I use a model server I already have?', 'The app can connect to supported local or LAN servers, including llama.cpp, MLX, LM Studio, Ollama, and vLLM. Use the endpoint and model ID actually served by your setup. Managed and in-app engine options depend on the platform and edition.'],
+      ['Can each agent use a different model?', 'Agents inherit the workspace model by default. Ultimate / Developer editions provide individual engine and model routes. You still need an available server and enough resources for the models you choose.'],
+      ['What do memory edits change?', 'The profile-memory manager lets you select an agent and review what it has learned about you. Editing can change future recall; Forget removes the selected profile memory. It does not erase your chat history or another agent’s profile memories.'],
+      ['Does a benchmark prove a tool action will succeed?', 'Protocol and MCP benchmarks evaluate generated output, parsing, or argument validity. MCP argument measurements do not execute the tools. A valid argument or high score is useful evidence, but a real task also needs the right action and a verified result.'],
+      ['Where can I follow availability and changes?', 'Use the project repository and published updates for release information. Features and limits vary by edition, platform, and installed build. The product examples on this page are illustrative, not live measurements of your system.'],
+    ];
+    return `<section class="section faq-section" id="faq"><div class="container faq-layout"><div><div class="section-kicker">BEFORE YOU BEGIN</div><h2>A few useful answers.</h2><p class="section-description">Understand the connections, controls, and scope before choosing a setup.</p></div><div class="faq-items">${entries.map(([question, answer]) => `<details><summary>${question}</summary><p>${answer}</p></details>`).join('')}</div></div></section>`;
+  }
+
+  function showStaticExamples() {
+    const set = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+    ['dashUserRow', 'dashPlan1', 'dashPlan2', 'dashAiRow'].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = false; });
+    set('dashUserText', 'Compare these project notes and write a brief.');
+    set('dashPlan1Action', 'Read the selected files');
+    set('dashPlan2Action', 'Write and check the brief');
+    set('dashAiText', 'The brief is ready for review.\n\n• Key decisions and their supporting sources\n• Differences that need your attention\n• A saved file to open and revise\n\nSample response — no files were read or written.');
+    set('dashInputText', 'Your next task…');
+    set('runtimeStepNo', 'STEP 03'); set('runtimeTitle', 'Inspect the tool result');
+    set('runtimeDesc', 'Plans, tool activity, and evidence stay visible in the same run.');
+    set('runtimeCode', 'read → compare → write → check'); set('runtimeChip', 'EXAMPLE');
+    set('runtimeStreamText', 'Example timeline · no live model connection');
+  }
+
+  function initializeProductInteractions() {
+    const { signal } = marketingController;
+    showStaticExamples();
+    const tabs = [...app.querySelectorAll('.workflow-tabs [role="tab"]')];
+    const selectTab = (tab, focus = false) => {
+      tabs.forEach(item => { const selected = item === tab; item.setAttribute('aria-selected', String(selected)); item.tabIndex = selected ? 0 : -1; document.getElementById(item.getAttribute('aria-controls')).hidden = !selected; });
+      if (focus) tab.focus();
+    };
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => selectTab(tab), { signal });
+      tab.addEventListener('keydown', event => {
+        const next = { ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 }[event.key];
+        if (next !== undefined) { event.preventDefault(); selectTab(tabs[next], true); }
+      }, { signal });
+    });
+    const animationButtons = [...app.querySelectorAll('[data-demo-animation]')];
+    const toggleAnimation = enabled => {
+      demoAnimationEnabled = enabled;
+      clearRuntimeDemo();
+      app.classList.toggle('examples-animated', enabled);
+      animationButtons.forEach(button => { button.setAttribute('aria-pressed', String(enabled)); button.textContent = enabled ? 'Pause examples' : 'Play example'; });
+      if (enabled) { initRuntimeDemo(); initDashboardDemo(); }
+      else { document.getElementById('dashCaret')?.classList.remove('on'); document.getElementById('runtimePlanCard')?.classList.remove('phase-flash'); }
+    };
+    animationButtons.forEach(button => button.addEventListener('click', () => toggleAnimation(!demoAnimationEnabled), { signal }));
+    document.addEventListener('visibilitychange', () => { if (document.hidden) toggleAnimation(false); }, { signal });
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => { if (event.matches) toggleAnimation(false); }, { signal });
+    const host = app.querySelector('[data-trace-host]');
+    const closeButton = app.querySelector('[data-close-trace]');
+    if (!host) return;
+    const placeholder = host.innerHTML;
+    let frame = null, visible = true;
+    const syncPlayback = () => frame?.contentWindow?.postMessage({ type: 'desklemur-demo-control', paused: document.hidden || !visible }, location.protocol === 'file:' ? '*' : location.origin);
+    host.addEventListener('click', event => {
+      if (!event.target.closest('[data-load-trace]') || frame) return;
+      frame = document.createElement('iframe');
+      frame.title = 'System Graph example with simulated telemetry';
+      frame.src = runtimeTraceUrl();
+      frame.addEventListener('load', syncPlayback, { signal });
+      host.replaceChildren(frame); closeButton.hidden = false;
+      closeButton.focus({ preventScroll: true });
+    }, { signal });
+    closeButton.addEventListener('click', () => {
+      frame?.remove(); frame = null; host.innerHTML = placeholder; closeButton.hidden = true; host.querySelector('button').focus({ preventScroll: true });
+    }, { signal });
+    window.addEventListener('message', event => { if (event.source === frame?.contentWindow && event.data?.type === 'desklemur-demo-ready') syncPlayback(); }, { signal });
+    document.addEventListener('visibilitychange', syncPlayback, { signal });
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; syncPlayback(); });
+      observer.observe(host); signal.addEventListener('abort', () => observer.disconnect(), { once: true });
+    }
+  }
+
   function headerTemplate() {
     return `
+      <a class="product-skip-link" href="#main-content">Skip to content</a>
       <header class="site-header">
         <div class="container header-inner">
           <div class="header-brand-group">
@@ -567,20 +687,19 @@
           <button
             class="menu-button"
             type="button"
-            aria-label="Toggle navigation"
+            aria-label="Open navigation"
+            aria-controls="product-navigation"
             aria-expanded="false"
           >
             MENU
           </button>
 
-          <nav class="main-nav" aria-label="Primary navigation">
+          <nav class="main-nav" id="product-navigation" aria-label="Primary navigation">
             <a class="mobile-parent-site-link" href="../index.html">← DeskLemur</a>
-            ${featureEnabled("runtime") ? '<a href="#runtime">Runtime</a>' : ""}
-            ${featureEnabled("tools") ? '<a href="#tools">Tools</a>' : ""}
-            ${featureEnabled("system_graph") ? '<a href="#observability">System Graph</a>' : ""}
-            ${featureEnabled("security") ? '<a href="#security">Security</a>' : ""}
+            <a href="#/">Product</a>
+            ${featureEnabled("runtime") ? '<a href="#/#runtime">How it works</a>' : ""}
             ${featureEnabled("vision") ? '<a href="#/vision">Vision</a>' : ""}
-            ${featureEnabled("releases") ? '<a href="#release-notes">Releases</a>' : ""}
+            ${featureEnabled("releases") ? '<a href="#/#release-notes">Updates</a>' : ""}
             ${featureEnabled("documentation") ? '<a href="#/docs">Documentation</a>' : ""}
             <a
               class="nav-cta"
@@ -590,7 +709,7 @@
             >
               GitHub ↗
             </a>
-            <button class="theme-toggle" type="button" aria-pressed="${String(isLightTheme())}">
+            <button class="theme-toggle" type="button" aria-label="Switch to ${isLightTheme() ? "dark" : "light"} theme" aria-pressed="${String(isLightTheme())}">
               <span aria-hidden="true">◐</span>
               <span>${isLightTheme() ? "Dark" : "Light"}</span>
             </button>
@@ -619,7 +738,7 @@
       <div class="runtime-shell" aria-label="Illustrated runtime dashboard">
         <div class="runtime-topbar">
           <span class="status-dot"></span>
-          <span>RUNTIME ACTIVE</span>
+          <span>WORKFLOW EXAMPLE</span>
           <span class="runtime-id">MASTER / LOCAL-01</span>
         </div>
 
@@ -711,10 +830,15 @@
   }
 
   // ── Hero runtime demo loop ────────────────────────────────────────────
-  const runtimeDemoTimers = [];
-
+  const runtimeDemoTimers = new Set();
+  function scheduleRuntimeDemo(fn, delay) {
+    const timer = setTimeout(() => { runtimeDemoTimers.delete(timer); fn(); }, delay);
+    runtimeDemoTimers.add(timer);
+    return timer;
+  }
   function clearRuntimeDemo() {
-    while (runtimeDemoTimers.length) clearTimeout(runtimeDemoTimers.pop());
+    runtimeDemoTimers.forEach(clearTimeout);
+    runtimeDemoTimers.clear();
   }
 
   function initRuntimeDemo() {
@@ -782,7 +906,7 @@
         if (streamText.textContent.length < text.length && i <= text.length) {
           streamText.textContent = text.slice(0, i);
           i += 2;
-          runtimeDemoTimers.push(setTimeout(tick, 24));
+          scheduleRuntimeDemo(tick, 24);
         } else {
           streamText.textContent = text;
         }
@@ -812,7 +936,7 @@
       applyPhase(phase);
       const hold = phase === phases.length - 1 ? PHASE_MS + 1400 : PHASE_MS;
       phase = (phase + 1) % phases.length;
-      runtimeDemoTimers.push(setTimeout(loop, hold));
+      scheduleRuntimeDemo(loop, hold);
     }
 
     loop();
@@ -850,7 +974,7 @@
       },
     ];
 
-    const schedule = (fn, ms) => runtimeDemoTimers.push(setTimeout(fn, ms));
+    const schedule = scheduleRuntimeDemo;
 
     function typeInto(el, text, speed, done) {
       let i = 0;
@@ -923,21 +1047,8 @@
             ${image
               ? `<span class="capability-shot"><img src="${cacheUrl(`${CAPABILITY_ASSET_DIR}/${encodeURIComponent(image)}`)}" alt="${escapeHtml(title)} screenshot" loading="lazy" /></span>`
               : ""}
-            ${liveDemo
-              ? `<div class="capability-shot capability-live-demo">
-                  <div class="capability-live-bar">
-                    <span>RUNTIME TRACE</span>
-                    <span><i></i> LIVE</span>
-                  </div>
-                  <div class="capability-live-viewport">
-                    <iframe
-                      src="${runtimeTraceUrl()}"
-                      title="DeskLemurOS Runtime Trace live demo"
-                      loading="lazy"
-                    ></iframe>
-                  </div>
-                  <a class="capability-live-link" href="#observability">OPEN FULL LIVE DEMO <span>↘</span></a>
-                </div>`
+            ${liveDemo && featureEnabled("system_graph")
+              ? '<a class="capability-preview-link" href="#/#observability"><span aria-hidden="true">↗</span> Explore the System Graph example</a>'
               : ""}
           </article>
         `,
@@ -987,44 +1098,46 @@
     app.innerHTML = `
       ${headerTemplate()}
 
-      <main>
-        <section class="hero">
+      <main id="main-content" tabindex="-1">
+        <section class="hero" id="overview">
           <div class="container hero-grid">
             <div class="hero-copy">
               <div class="eyebrow">LOCAL-FIRST · MODEL-AGNOSTIC · OBSERVABLE</div>
 
               <h1>
-                Toward a
-                <span>Local Agent OS.</span>
+                Your models.
+                <span>A working system.</span>
               </h1>
 
               <p class="hero-lead">
-                DeskLemurOS is a local-first, on-premise AI runtime and
-                autonomous orchestration platform for models, agents, tools,
-                memory, and workflows — it runs entirely on your own hardware.
+                A desktop workspace for local AI agents. Connect a model, give
+                it tools and a task, then follow the work from plan to result.
               </p>
 
               <p class="hero-support">
-                Run local models, coordinate autonomous agents, control tools and
-                permissions, and inspect every step from one workspace.
+                Keep models and task context on your machine. Choose when tools,
+                connectors, or a configured provider reach external services.
               </p>
 
               <div class="hero-actions">
-                <a class="button button-primary" href="#runtime">
-                  Explore the Runtime
-                </a>
+                <a class="button button-primary" href="#/#workflows">Explore a workflow <span aria-hidden="true">↓</span></a>
+                <a class="button button-secondary" href="${escapeHtml(githubUrl())}" target="_blank" rel="noopener noreferrer">Project on GitHub ↗</a>
                 ${featureEnabled("documentation") ? '<a class="button button-secondary" href="#/docs">Read the Documentation</a>' : ""}
               </div>
 
-              <div class="hero-terminal">
-                <span>$</span>
-                <code>desklemur-os run --mode local --trace live</code>
-              </div>
+              <ul class="hero-facts" aria-label="Product at a glance">
+                <li>Local model connections</li><li>Named agents &amp; memory</li><li>Visible tool activity</li>
+              </ul>
             </div>
 
-            ${dashboardPanelTemplate()}
+            <div class="product-preview">
+              ${dashboardPanelTemplate()}
+              <div class="demo-caption"><span>Illustrative workflow · sample data</span><button type="button" data-demo-animation aria-pressed="false">Play example</button></div>
+            </div>
           </div>
         </section>
+        ${productJumpTemplate()}
+        ${workflowTemplate()}
 
         <section class="manifesto section" id="runtime">
           <div class="container manifesto-grid manifesto-grid-live">
@@ -1050,16 +1163,17 @@
 
             <div class="manifesto-runtime">
               ${runtimePanelTemplate()}
+              <div class="demo-caption"><span>Illustrative steps · no tools are executed</span><button type="button" data-demo-animation aria-pressed="false">Play example</button></div>
             </div>
           </div>
         </section>
 
-        <section class="section capabilities-section">
+        <section class="section capabilities-section" id="capabilities">
           <div class="container">
             <div class="section-heading">
               <div>
                 <div class="section-kicker">ONE CONTROL SURFACE</div>
-                <h2>Everything required to operate a local AI runtime.</h2>
+                <h2>Six parts. One workspace.</h2>
               </div>
 
               <p>
@@ -1159,18 +1273,16 @@
             </div>
 
             <div class="graph-card graph-card-live">
-              <div class="graph-card-header">
-                <span>SYSTEM GRAPH — LIVE DEMO</span>
-                <span class="live-demo-pill">REPLAYING A REAL RUN</span>
+              <div class="graph-card-header"><span>SYSTEM GRAPH</span><span class="live-demo-pill">ILLUSTRATIVE REPLAY</span></div>
+              <div class="live-embed" data-trace-host>
+                <div class="trace-placeholder">
+                  <div class="trace-path" aria-hidden="true"><span>Request</span><i>→</i><span>Plan</span><i>→</i><span>Tools</span><i>→</i><span>Result</span></div>
+                  <h3>Follow a run, step by step.</h3>
+                  <p>Explore the timeline, graph, and model metrics with simulated data. This example does not connect to your app.</p>
+                  <button class="button button-primary" type="button" data-load-trace>Open interactive example</button>
+                </div>
               </div>
-
-              <div class="live-embed">
-                <iframe
-                  src="${runtimeTraceUrl()}"
-                  title="DeskLemurOS System Graph live demo"
-                  loading="lazy"
-                ></iframe>
-              </div>
+              <div class="demo-caption"><span>Simulated telemetry · loaded on request</span><button type="button" data-close-trace hidden>Close example</button></div>
             </div>
           </div>
         </section>
@@ -1278,7 +1390,7 @@
                 <li>Individual, collaboration, and debate orchestration modes</li>
                 <li>Individual engine and model routes in Ultimate / Developer</li>
                 <li>Master profiles — each with its own agents, settings, and sandbox</li>
-                <li>Per-agent policy profiles for behavior and approvals</li>
+                <li>Master-scoped policy settings with visible runtime checks</li>
               </ul>
             </div>
 
@@ -1321,20 +1433,20 @@
               <h2>The local moment.</h2>
 
               <p>
-                NVIDIA and AMD are pushing serious AI compute to local machines.
-                That hardware needs a serious local agent orchestrator — and it
-                already runs here.
+                Apple Silicon systems, including Mac Studio, and supported
+                NVIDIA or AMD setups can host local model servers. DeskLemurOS
+                connects the model to agents, memory, and the tools you choose.
               </p>
 
               <ul class="feature-list">
-                <li>Consumer GPUs now run capable quantized models</li>
-                <li>On-premise by default — models, data, and tools stay on your own hardware; nothing leaves for the cloud unless you choose a web provider</li>
+                <li>Model size and speed depend on your hardware, memory, and chosen engine</li>
+                <li>Local inference keeps model requests on your machine; web research, remote MCP tools, and other integrations may contact external services</li>
                 <li>Built for on-device orchestration, not a cloud afterthought</li>
               </ul>
             </div>
 
             <figure class="section-art">
-              <img src="${directionArtPath("The local moment.png")}" alt="The local moment illustration" loading="lazy" />
+              <img src="${directionArtPath("The local moment.png")}" alt="A lemur at a local AI workstation with AMD hardware, Apple Mac Studio, and NVIDIA hardware" loading="lazy" />
             </figure>
           </div>
         </section>
@@ -1400,6 +1512,7 @@
           </div>
         </section>
 
+        ${faqTemplate()}
         <section class="final-cta">
           <div class="container">
             <p>LOCAL AGENT OS / RUNTIME CONTROL / AUTONOMOUS ORCHESTRATION</p>
@@ -1432,8 +1545,7 @@
 
     applyFeatureVisibility();
     initializeHeader();
-    initRuntimeDemo();
-    initDashboardDemo();
+    initializeProductInteractions();
   }
 
   function groupDocs(entries) {
@@ -1650,38 +1762,51 @@
   }
 
   function initializeHeader() {
-    const button = document.querySelector(".menu-button");
-    const navigation = document.querySelector(".main-nav");
-    const themeToggle = document.querySelector(".theme-toggle");
-
-    button?.addEventListener("click", () => {
-      const isOpen = navigation.classList.toggle("open");
-      button.setAttribute("aria-expanded", String(isOpen));
-    });
-
-    navigation?.addEventListener("click", () => {
-      navigation.classList.remove("open");
-      button.setAttribute("aria-expanded", "false");
-    });
-
-    themeToggle?.addEventListener("click", () => {
-      productTheme = isLightTheme() ? "dark" : "light";
-      window.localStorage.setItem("deskle-mur-os-product-theme", productTheme);
+    const { signal } = marketingController;
+    const button = app.querySelector('.menu-button');
+    const navigation = app.querySelector('.main-nav');
+    const mobile = window.matchMedia('(max-width: 800px)');
+    const setOpen = (open, restore = false) => {
+      const active = open && mobile.matches;
+      navigation.classList.toggle('open', active);
+      navigation.inert = mobile.matches && !active;
+      button.setAttribute('aria-expanded', String(active));
+      button.setAttribute('aria-label', active ? 'Close navigation' : 'Open navigation');
+      if (restore) button.focus();
+    };
+    button.addEventListener('click', () => setOpen(!navigation.classList.contains('open')), { signal });
+    navigation.addEventListener('click', event => {
+      const link = event.target.closest('a');
+      if (!link) return;
+      if (link.getAttribute('href')?.startsWith('#/')) {
+        focusMarketingDestination = true;
+        if (link.hash === window.location.hash) route();
+      }
+      setOpen(false);
+    }, { signal });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && navigation.classList.contains('open')) { event.preventDefault(); setOpen(false, true); }
+    }, { signal });
+    document.addEventListener('click', event => { if (!event.target.closest('.site-header')) setOpen(false); }, { signal });
+    mobile.addEventListener('change', () => setOpen(false), { signal });
+    setOpen(false);
+    app.querySelector('.theme-toggle').addEventListener('click', () => {
+      productTheme = isLightTheme() ? 'dark' : 'light';
+      try { window.localStorage.setItem('desklemur-theme', productTheme); } catch {}
       const scrollY = window.scrollY;
-      const onVision = (window.location.hash || "").startsWith("#/vision");
-      (onVision ? renderVision : renderHome)();
-      window.scrollTo(0, scrollY);
-    });
-
-    document.querySelectorAll("[data-scroll]").forEach((btn) => {
-      btn.addEventListener("click", (event) => {
-        const target = document.getElementById(btn.dataset.scroll);
-        if (target) {
-          event.preventDefault();
-          target.scrollIntoView({ behavior: "smooth" });
-        }
+      route(true);
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: scrollY, behavior: 'instant' });
+        app.querySelector(mobile.matches ? '.menu-button' : '.theme-toggle')?.focus({ preventScroll: true });
       });
-    });
+    }, { signal });
+    app.querySelector('.product-skip-link')?.addEventListener('click', event => {
+      event.preventDefault(); app.querySelector('main')?.focus();
+    }, { signal });
+    app.querySelectorAll('[data-scroll]').forEach(link => link.addEventListener('click', event => {
+      const target = document.getElementById(link.dataset.scroll);
+      if (target) { event.preventDefault(); target.scrollIntoView({ behavior: 'instant' }); }
+    }, { signal }));
   }
 
   function renderVision() {
@@ -1691,8 +1816,8 @@
     app.innerHTML = `
       ${headerTemplate()}
 
-      <main>
-        <section class="section vision-hero">
+      <main id="main-content" tabindex="-1">
+        <section class="section vision-hero" id="vision-overview">
           <div class="container">
             <div class="eyebrow">VISION · FROM USING AI TO OPERATING AI</div>
             <h1>AI doesn’t need a larger chat window.<br />It needs a new operating architecture.</h1>
@@ -1704,12 +1829,13 @@
             </p>
             <div class="hero-actions">
               ${featureEnabled("early_access") ? '<a class="button button-primary" data-scroll="early-access" href="#/vision">Become an early partner</a>' : ""}
-              <a class="button button-secondary" href="#/">Back to overview</a>
+              <a class="button button-secondary" href="#/">Explore the current product</a>
+              <a class="button button-secondary" href="#/vision#research-direction">Research direction ↓</a>
             </div>
           </div>
         </section>
 
-        <section class="section vision-chapter">
+        <section class="section vision-chapter" id="discovery-to-engineering">
           <div class="container narrow">
             <div class="section-kicker">FROM DISCOVERY TO ENGINEERING</div>
             <figure class="section-art vision-chapter-art art-right">
@@ -1767,27 +1893,17 @@
             <figure class="section-art vision-chapter-art art-right">
               <img src="${cacheUrl("./assets/vision/local-first-control.png")}" alt="A local AI workstation with a controlled external connection" loading="lazy" />
             </figure>
-            <h2>Local won’t out-reason a frontier model. That was never the point.</h2>
+            <h2>Choose where the model runs. Keep the work inspectable.</h2>
             <p class="section-description">
-              A model you run on your own hardware will not match a frontier model’s raw
-              reasoning — and it doesn’t need to. What local gives you instead is total control:
-              your data never leaves, your permissions are absolute, your infrastructure is
-              yours. Want frontier capability? Reach for it through the same runtime. Sensitive,
-              repeatable, or in-house work? Keep it local. <strong>Local-first, not local-only.</strong>
+              Local inference gives you control over the model server and its hardware.
+              The right model depends on the task, available memory, and acceptable latency.
+              Connected tools, remote MCP services, and configured web providers can still
+              send requests outside that machine; local inference is one part of the system boundary.
             </p>
             <p class="section-description">
-              Expectations matter too. A general open model in the small-to-mid range is
-              excellent for bounded, specialized work — coding, document and research workflows,
-              structured extraction, automation — especially when it is tuned for the job.
-              Expecting frontier-level <em>general</em> reasoning from it is the wrong
-              expectation, and we won’t pretend otherwise. Running the very largest open models
-              is an institutional capability, not a personal one — which is exactly why
-              on-premise orchestration and control matter at that scale.
-            </p>
-            <p class="section-description">
-              The value of DeskLemurOS is not a bigger model. It is <strong>ownership,
-              transparency, and the right model for each job</strong> — with the freedom to reach
-              for a frontier model when, and only when, you choose to.
+              Start with a bounded task, inspect its tool results, and compare model and
+              protocol settings on the same examples. A larger model can help, but measured
+              behavior matters more than an assumed capability level.
             </p>
           </div>
         </section>
@@ -1800,9 +1916,10 @@
             </figure>
             <h2>Not one assistant, but many collaborating agents.</h2>
             <p class="section-description">
-              A request first reaches a <strong>Coordinator</strong> that interprets the
-              objective and delegates to specialists — each with its own models, tools,
-              permissions, and memory, all under one policy and audit framework:
+              The current product supports individual agents, collaboration, and debate.
+              The longer-term direction is richer coordination among specialists, with
+              explicit handoffs, shared objectives, and review of one another’s results.
+              Example roles for that direction include:
             </p>
             <ul class="feature-list">
               <li>Research · Coding · Document · Engineering agents</li>
@@ -1818,7 +1935,7 @@
           </div>
         </section>
 
-        <section class="section vision-chapter">
+        <section class="section vision-chapter" id="memory-governance">
           <div class="container narrow">
             <div class="section-kicker">MEMORY WITH GOVERNANCE</div>
             <figure class="section-art vision-chapter-art art-right">
@@ -1826,8 +1943,9 @@
             </figure>
             <h2>Memory that remembers — and forgets when it should.</h2>
             <p class="section-description">
-              Memory is not just conversation history. DeskLemurOS separates it by purpose,
-              and every layer answers what to keep, who may read it, and when to delete it:
+              The current runtime separates task context, recall, and agent profile memories.
+              You can select an agent to inspect or edit what it has learned about you.
+              The broader research direction extends this separation to project and team use:
             </p>
             <ul class="feature-list">
               <li><strong>Working memory</strong> — the current task</li>
@@ -1836,9 +1954,9 @@
               <li><strong>Shared organizational memory</strong> — knowledge for authorized teams and agents</li>
             </ul>
             <p class="section-description">
-              Sensitive information can be excluded, or held only inside an encrypted,
-              access-controlled area. You can inspect, correct, export, and delete anything
-              the system remembers.
+              Today’s profile-memory controls apply to the selected agent; forgetting a
+              profile memory does not delete chat history. Organization-wide sharing,
+              retention, and access controls are design goals, not promises made by those controls.
             </p>
           </div>
         </section>
@@ -1851,23 +1969,15 @@
             </figure>
             <h2>Powerful when needed. Restricted when not.</h2>
             <p class="section-description">
-              Every agent is scoped: which models it may use, which tools it may activate,
-              which files and databases it may touch, whether it may reach external networks,
-              which memories it may read or update, how long it may run, and which actions
-              need human approval.
+              The current runtime exposes tool permissions, path-scope levels, and runtime
+              review controls. Their settings have specific scopes: not every policy is an
+              independent setting for every agent, and a path restriction is not a complete
+              network or operating-system sandbox.
             </p>
-            <ul class="feature-list">
-              <li>A document agent limited to one folder</li>
-              <li>A research agent allowed only selected databases</li>
-              <li>A development agent running code only in an isolated sandbox</li>
-              <li>A sensitive-data agent fully disconnected from external networks</li>
-            </ul>
             <p class="section-description">
-              Approval checkpoints guard the risky steps: searching and summarizing may run
-              automatically, while deleting files, sending data outside, modifying contracts,
-              installing software, making payments, or changing system settings require
-              explicit authorization. Trust comes from being able to inspect, interrupt, and
-              correct — not from the impression of intelligence.
+              Finer-grained delegation and approval flows remain part of the direction.
+              Start from the controls available in your edition, inspect what a tool can
+              actually do, and keep important actions reviewable.
             </p>
           </div>
         </section>
@@ -1892,48 +2002,44 @@
           </div>
         </section>
 
-        <section class="section vision-chapter">
+        <section class="section vision-chapter" id="individual-models">
           <div class="container narrow">
             <div class="section-kicker">FROM ONE MODEL TO MANY</div>
             <figure class="section-art vision-chapter-art art-left">
               <img src="${cacheUrl("./assets/vision/one-model-to-many.png")}" alt="One runtime coordinating multiple specialist models" loading="lazy" />
             </figure>
-            <h2>Today, one model plays every agent. Next, each agent can bring its own.</h2>
+            <h2>A shared model by default. Individual routes when needed.</h2>
             <p class="section-description">
-              The current runtime is tuned for personal machines: a single LLM reasons for
-              every agent role — light enough to run collaboration and debate on one computer.
-              The blueprint keeps that as the default — agents inherit one global model config —
-              while letting <em>any</em> agent optionally embed and pin its own model, chosen for
-              its job: a strong reasoner to plan, a code model for the coding agent, a small fast
-              model to route. Global by default, per-agent when it matters — all under the same
-              policy, memory, and audit framework.
+              Agents can share the workspace model. Ultimate / Developer editions also
+              expose individual engine and model routes for an agent, including delegated
+              and bot requests. These settings choose a connection; they do not automatically
+              start another model server or guarantee that several models fit in memory.
             </p>
             <div class="vision-formula">
-              <div><span class="ff-tag">now</span><code>f(x) = 1 · LLM( agent(x) )</code><span class="ff-note">one shared model drives every agent</span></div>
-              <div><span class="ff-tag">next</span><code>f(x) = Σ agentᵢ( LLMᵢ ?? LLM_global )</code><span class="ff-note">per-agent model, else the global default</span></div>
+              <div><span class="ff-tag">shared</span><code>agent → workspace model</code><span class="ff-note">inherit the configured connection</span></div>
+              <div><span class="ff-tag">individual</span><code>agent → selected engine + model</code><span class="ff-note">where available in your edition</span></div>
             </div>
           </div>
         </section>
 
-        <section class="section vision-chapter">
+        <section class="section vision-chapter" id="research-direction">
           <div class="container narrow">
             <div class="section-kicker">MEMORY THAT LEARNS</div>
             <figure class="section-art vision-chapter-art art-right">
               <img src="${cacheUrl("./assets/vision/memory-that-learns.png")}" alt="Validated experience becoming learning-ready model knowledge" loading="lazy" />
             </figure>
-            <h2>Not retrieval. Real learning.</h2>
+            <h2>From remembered experience to measured improvement.</h2>
             <p class="section-description">
-              Most systems “remember” by pulling text back into the prompt — RAG. DeskLemurOS
-              already goes further: important memories are stored in a learning-ready form —
-              tagged as active knowledge, carrying training-candidate and LoRA metadata, and
-              flagged when they are promotion-ready.
+              Current memory features store and retrieve information for later tasks.
+              Candidate metadata and research modes do not mean that an ordinary chat
+              rewrites a model’s weights. Retrieval, normalization policies, and model
+              training are different mechanisms.
             </p>
             <p class="section-description">
-              The blueprint closes the loop. A passive layer captures experience continuously;
-              an active layer decides what is worth keeping; and validated knowledge is promoted
-              into the model’s own weights through QLoRA — gated and reviewed, never silently.
-              The result is a system that learns like a living thing: it doesn’t just re-read its
-              notes, it changes.
+              The research direction is to evaluate whether verified experience can become
+              useful training data, with explicit review, regression checks, and a way to
+              reverse a change. This is work to investigate, not a guaranteed self-learning
+              feature or a claim of AGI.
             </p>
           </div>
         </section>
@@ -2008,12 +2114,7 @@
             <p class="section-description vision-cta-lead">
               Product demonstrations · technical validation · co-development · on-premise deployment discussions
             </p>
-            <div class="ea-contact">
-              <span>[ Company / Project ]</span>
-              <span>[ Website ]</span>
-              <span>[ Email ]</span>
-              <span>[ QR · Early access registration ]</span>
-            </div>
+            <div class="hero-actions centered"><a class="button button-primary" href="${escapeHtml(githubUrl())}" target="_blank" rel="noopener noreferrer">Follow project updates ↗</a></div>
             <p class="vision-tagline">Operate Intelligence. Own the System.</p>
           </div>
         </section>` : ""}
@@ -2042,38 +2143,51 @@
     });
   }
 
-  function route() {
-    refreshForNewVersion();
+  function route(force = false) {
     closeLightbox(false);
-    const hash = window.location.hash || "#/";
+    let hash = window.location.hash || '#/';
     const isDocsRoute = /^#\/docs(?:\/|$)/.test(hash);
-    if (isDocsRoute && featureEnabled("documentation")) {
-      clearRuntimeDemo();
+    if (isDocsRoute && featureEnabled('documentation')) {
+      focusMarketingDestination = false;
+      clearRuntimeDemo(); marketingController?.abort(); renderedMarketingPage = null;
+      demoAnimationEnabled = false; app.classList.remove('examples-animated');
       const requestedDoc = findDoc(docsRoute(hash).slug);
-      if (document.body.classList.contains("docs-view") && renderedDocSlug && requestedDoc?.slug === renderedDocSlug) {
-        scrollDocsSection(docsRoute(hash).section);
-      } else {
-        renderDocs(hash);
-      }
+      if (document.body.classList.contains('docs-view') && renderedDocSlug && requestedDoc?.slug === renderedDocSlug) scrollDocsSection(docsRoute(hash).section);
+      else renderDocs(hash);
       return;
     }
-    docsController?.abort();
-    renderedDocSlug = null;
-    document.body.classList.remove("docs-menu-open");
-    if (hash.startsWith("#/vision") && featureEnabled("vision")) {
-      clearRuntimeDemo();
-      renderVision();
-    } else {
-      if ((isDocsRoute && !featureEnabled("documentation")) ||
-          (hash.startsWith("#/vision") && !featureEnabled("vision"))) {
-        window.history.replaceState(null, "", "#/");
+    docsController?.abort(); renderedDocSlug = null;
+    document.body.classList.remove('docs-menu-open');
+    const visionRequested = /^#\/vision(?:#|$)/.test(hash);
+    if ((isDocsRoute && !featureEnabled('documentation')) || (visionRequested && !featureEnabled('vision'))) {
+      window.history.replaceState(null, '', '#/'); hash = '#/';
+    }
+    const page = /^#\/vision(?:#|$)/.test(hash) && featureEnabled('vision') ? 'vision' : 'home';
+    const section = decodeFragment(hash.startsWith('#/') ? (hash.split('#')[2] || '') : hash.slice(1));
+    if (force === true || renderedMarketingPage !== page) {
+      clearRuntimeDemo(); marketingController?.abort();
+      marketingController = new AbortController();
+      demoAnimationEnabled = false; app.classList.remove('examples-animated');
+      renderedMarketingPage = page;
+      if (page === 'vision') renderVision(); else renderHome();
+      prepareZoomImages();
+    }
+    requestAnimationFrame(() => {
+      const target = section && document.getElementById(section);
+      if (target && target.closest('main')) target.scrollIntoView({ behavior: 'instant', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'instant' });
+      if (focusMarketingDestination) {
+        const destination = (target && target.closest('main') && target) || app.querySelector('main h1, main');
+        if (destination) {
+          if (!destination.hasAttribute('tabindex')) destination.setAttribute('tabindex', '-1');
+          destination.focus({ preventScroll: true });
+        }
+        focusMarketingDestination = false;
       }
-      renderHome();
-    }
-    prepareZoomImages();
-    if (hash === "#/" || isDocsRoute || hash.startsWith("#/vision")) {
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
+      app.querySelectorAll('.product-jump a').forEach(link => {
+        if (link.hash === '#/#' + section) link.setAttribute('aria-current', 'location'); else link.removeAttribute('aria-current');
+      });
+    });
   }
 
   function initLightbox() {
@@ -2127,6 +2241,7 @@
 
   initLightbox();
 
-  window.addEventListener("hashchange", route);
+  refreshForNewVersion();
+  window.addEventListener("hashchange", () => route());
   route();
 })();

@@ -993,3 +993,11 @@ END-COPYRIGHT */
 ©️ Copyright 2026. DeskLemurOS All rights reserved.
 ©️ Contact : DeskLemurOS@outlook.com
 END-COPYRIGHT */
+
+/* Public demo controls remain usable without animation. */
+button:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 4px; }
+body.demo-paused *, body.demo-paused *::before, body.demo-paused *::after { animation-play-state: paused !important; }
+#bg-canvas { display: none; }
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

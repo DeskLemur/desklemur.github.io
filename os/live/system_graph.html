@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeskLemurOS | Runtime Trace</title>
-    <link id="theme-style" rel="stylesheet" href="system_graph.css?v=3a9f5d358daf25be">
+    <link id="theme-style" rel="stylesheet" href="system_graph.css?v=dae953fcf587184b">
 </head>
 <body>
 
@@ -14,11 +14,12 @@
         <header>
             <div>
                 <h1>DeskLemurOS RUNTIME TRACE</h1>
-                <p class="header-subtitle">Agent execution, memory recall, tool chains, interrupts, and final responses.</p>
+                <p class="header-subtitle">Illustrative replay · Simulated events and telemetry · No model or tools are running.</p>
             </div>
             <div class="header-actions">
+                <button id="demo-playback" class="modal-trigger-btn" type="button" aria-pressed="false">PAUSE REPLAY</button>
                 <button class="modal-trigger-btn" onclick="clearTraceEvents()">CLEAR TRACE</button>
-                <button class="modal-trigger-btn" onclick="resetLlmUsage()">RESET TOKENS</button>
+                <button class="modal-trigger-btn" onclick="resetLlmUsage()">RESET DEMO TOKENS</button>
                 <button class="modal-trigger-btn" onclick="openTraceConsole()">OPEN TRACE CONSOLE</button>
             </div>
         </header>
@@ -28,7 +29,7 @@
                     <div class="panel-heading">
                         <div>
                             <h3>Execution Graph</h3>
-                            <p>Live path from prompt to reasoning, tools, memory, interrupts, and response.</p>
+                            <p>Illustrated path from prompt to reasoning, tools, memory, interrupts, and response.</p>
                         </div>
                         <span class="live-pill" id="trace-live-pill">WAITING</span>
                     </div>
@@ -98,7 +99,7 @@
 
                 <section class="metrics-panel compact-runtime-panel">
                 <h3>Runtime Load</h3>
-                <p id="runtime-summary">LIVE STREAMING...</p>
+                <p id="runtime-summary">SIMULATED TELEMETRY</p>
                 <div class="load-bars">
                     <div class="load-bar-row">
                         <span>CPU</span>
@@ -165,8 +166,7 @@
             <div id="traceConsoleBody" class="trace-console-body"></div>
         </div>
     </div>
-<script src="tauri_bridge.js?v=8615ea348012412b"></script>
-<script src="system_graph.js?v=d6be21372d0ef3c1"></script>
-<script src="demo_feed.js?v=d2e3ee8af6a2896b"></script>
+<script src="system_graph.js?v=cda07ae27310c292"></script>
+<script src="demo_feed.js?v=56288c601f87c620"></script>
 </body>
 </html>

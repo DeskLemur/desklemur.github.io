@@ -1,7 +1,9 @@
 (() => {
+  "use strict";
   const key = "desklemur-theme";
   const root = document.documentElement;
   const header = document.querySelector(".site-header");
+  const navigation = document.querySelector(".main-nav");
   const menu = document.querySelector(".menu-toggle");
   const toggle = document.querySelector(".theme-toggle");
   const label = document.querySelector(".theme-label");
@@ -19,7 +21,8 @@
     if (!url || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(url)) return url;
     const [beforeHash, hash = ""] = url.split("#", 2);
     const [path, query = ""] = beforeHash.split("?", 2);
-    const key = decodeURIComponent(path).replace(/^\.\//, "");
+    let key = path.replace(/^\.\//, "");
+    try { key = decodeURIComponent(key); } catch (_) { /* Preserve malformed paths safely. */ }
     const version = cache.assets?.[key] || cache.version;
     if (!version) return url;
     const params = new URLSearchParams(query);
@@ -89,55 +92,115 @@
 
     const products = Array.isArray(site.products) ? site.products : [];
     if (!productDropdown || !products.length) return;
-    const year = configValue("site.copyright_year") || new Date().getFullYear();
     productDropdown.innerHTML = `${products.map((product) => `
-      <a class="product-entry" href="${escapeHtml(product.url)}">
+      <a class="product-entry" href="${escapeHtml(cacheUrl(product.url))}">
         <img src="${escapeHtml(cacheUrl(product.icon))}" alt="" />
         <span><b>${escapeHtml(product.name)}</b><small>${escapeHtml(product.subtitle)}</small></span>
         <i aria-hidden="true">↗</i>
       </a>
-    `).join("")}<div class="product-soon"><span>MORE PRODUCTS IN DEVELOPMENT</span><b>${String(products.length).padStart(2, "0")} / ${escapeHtml(year)}</b></div>`;
+    `).join("")}<div class="product-soon"><span>EXPLORE THE PRODUCT</span><b>${String(products.length).padStart(2, "0")}</b></div>`;
   }
 
   function renderNews() {
     if (!newsList || !Array.isArray(window.DESKLEMUR_NEWS)) return;
-    const formatter = new Intl.DateTimeFormat(undefined, {
-      day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit",
+    const items = window.DESKLEMUR_NEWS.filter((item) => item && item.title && item.url)
+      .slice().sort((a, b) => (Date.parse(b.published_at) || 0) - (Date.parse(a.published_at) || 0))
+      .slice(0, 3);
+    if (!items.length) {
+      newsList.innerHTML = '<p class="news-empty">Project notes will appear here when published. <a href="./news/index.html">Visit the news archive <span aria-hidden="true">→</span></a></p>';
+      return;
+    }
+    const formatter = new Intl.DateTimeFormat("en", {
+      day: "2-digit", month: "short", year: "numeric",
     });
-    newsList.innerHTML = window.DESKLEMUR_NEWS.slice(0, 3).map((item) => {
-      const date = formatter.format(new Date(item.published_at)).toUpperCase();
-      return `<a class="news-item" href="${item.url}"><span class="news-meta">${date}<b>${item.category}</b></span><span class="news-title">${item.title}</span><span class="news-arrow">↗</span></a>`;
+    newsList.innerHTML = items.map((item) => {
+      const published = new Date(item.published_at);
+      const date = Number.isNaN(published.getTime()) ? "" : `<time datetime="${escapeHtml(published.toISOString())}">${escapeHtml(formatter.format(published).toUpperCase())}</time>`;
+      return `<a class="news-item" href="${escapeHtml(cacheUrl(item.url))}"><span class="news-meta">${date}<b>${escapeHtml(item.category || "PROJECT NOTE")}</b></span><span class="news-title">${escapeHtml(item.title)}</span><span class="news-arrow" aria-hidden="true">↗</span></a>`;
     }).join("");
   }
-  const setTheme = (theme) => {
+
+  const readTheme = () => {
+    try { return window.localStorage.getItem(key) === "light" ? "light" : "dark"; }
+    catch (_) { return root.classList.contains("light-theme") ? "light" : "dark"; }
+  };
+  const setTheme = (theme, persist = false) => {
     const light = theme === "light";
     root.classList.toggle("light-theme", light);
+    root.style.colorScheme = light ? "light" : "dark";
     toggle?.setAttribute("aria-pressed", String(light));
+    toggle?.setAttribute("aria-label", `Switch to ${light ? "dark" : "light"} theme`);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", light ? "#f4efe6" : "#11110f");
     if (label) label.textContent = light ? "Dark" : "Light";
-    window.localStorage.setItem(key, theme);
+    if (persist) {
+      try { window.localStorage.setItem(key, light ? "light" : "dark"); }
+      catch (_) { /* Theme changes still work when storage is blocked. */ }
+    }
   };
-  setTheme(window.localStorage.getItem(key) === "light" ? "light" : "dark");
+  setTheme(readTheme());
   refreshForNewVersion();
   hydrateSiteContent();
   applyFeatureVisibility();
   renderNews();
-  toggle?.addEventListener("click", () => setTheme(root.classList.contains("light-theme") ? "dark" : "light"));
-  const setProductOpen = (open) => {
-    productMenu?.classList.toggle("product-open", open);
+  toggle?.addEventListener("click", () => setTheme(root.classList.contains("light-theme") ? "dark" : "light", true));
+  window.addEventListener("storage", (event) => {
+    if (event.key === key || event.key === null) setTheme(readTheme());
+  });
+  window.addEventListener("pageshow", () => setTheme(readTheme()));
+
+  const smallScreen = window.matchMedia("(max-width: 1180px)");
+  const setProductOpen = (open, restoreFocus = false) => {
+    if (!productMenu?.isConnected) return;
+    productMenu.classList.toggle("product-open", open);
     productTrigger?.setAttribute("aria-expanded", String(open));
+    if (productDropdown) productDropdown.hidden = !open;
+    if (!open && restoreFocus) productTrigger?.focus();
   };
+  const setMenuOpen = (open, restoreFocus = false) => {
+    header?.classList.toggle("menu-open", open);
+    menu?.setAttribute("aria-expanded", String(open));
+    menu?.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
+    if (!open) setProductOpen(false);
+    if (!open && restoreFocus) menu?.focus();
+  };
+  setProductOpen(false);
   productTrigger?.addEventListener("click", () => {
-    if (!window.matchMedia("(max-width: 1180px)").matches) return;
-    setProductOpen(!productMenu?.classList.contains("product-open"));
+    setProductOpen(productTrigger.getAttribute("aria-expanded") !== "true");
+  });
+  productTrigger?.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowDown") return;
+    event.preventDefault();
+    setProductOpen(true);
+    productDropdown?.querySelector("a")?.focus();
+  });
+  productMenu?.addEventListener("focusout", (event) => {
+    if (!productMenu.contains(event.relatedTarget)) setProductOpen(false);
   });
   menu?.addEventListener("click", () => {
-    const open = header?.classList.toggle("menu-open");
-    menu.setAttribute("aria-expanded", String(Boolean(open)));
-    if (!open) setProductOpen(false);
+    setMenuOpen(menu.getAttribute("aria-expanded") !== "true");
   });
-  document.querySelectorAll(".main-nav a").forEach((link) => link.addEventListener("click", () => {
-    header?.classList.remove("menu-open");
-    menu?.setAttribute("aria-expanded", "false");
-    setProductOpen(false);
-  }));
+  navigation?.addEventListener("click", (event) => {
+    if (event.target.closest("a")) setMenuOpen(false);
+  });
+  header?.addEventListener("focusout", (event) => {
+    if (!header.contains(event.relatedTarget)) setMenuOpen(false);
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!productMenu?.contains(event.target)) setProductOpen(false);
+    if (!header?.contains(event.target)) setMenuOpen(false);
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (productTrigger?.getAttribute("aria-expanded") === "true") {
+      event.preventDefault();
+      setProductOpen(false, true);
+    } else if (menu?.getAttribute("aria-expanded") === "true") {
+      event.preventDefault();
+      setMenuOpen(false, true);
+    }
+  });
+  smallScreen.addEventListener("change", () => {
+    const focusWillHide = smallScreen.matches && navigation?.contains(document.activeElement);
+    setMenuOpen(false, focusWillHide);
+  });
 })();
