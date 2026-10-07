@@ -4,6 +4,8 @@
   const app = document.querySelector("#app");
   const docs = Array.isArray(window.DESKLEMUR_OS_DOCS)
     ? [...window.DESKLEMUR_OS_DOCS].sort((a, b) =>
+        ({ Overview: 0, "User Guide": 1, "Developer Guide": 2 }[a.group] ?? 3) -
+        ({ Overview: 0, "User Guide": 1, "Developer Guide": 2 }[b.group] ?? 3) ||
         String(a.path).localeCompare(String(b.path)),
       )
     : [];
@@ -34,7 +36,7 @@
     if (!url || /^(?:[a-z][a-z\d+.-]*:|#|\/\/)/i.test(url)) return url;
     const [beforeHash, hash = ""] = url.split("#", 2);
     const [path, query = ""] = beforeHash.split("?", 2);
-    const normalized = decodeURIComponent(path).replace(/^\.\//, "");
+    const normalized = decodeFragment(path).replace(/^\.\//, "");
     const version = cache.assets?.[`os/${normalized}`] || cache.version;
     if (!version) return url;
     const params = new URLSearchParams(query);
@@ -119,7 +121,7 @@
     {
       index: "01",
       title: "Models",
-      body: "Nearly any local engine or model can drive the runtime — in-process (MLX), local servers (llama.cpp, LM Studio, Ollama, vLLM), and various compatible local API endpoints, adapted per model via channel and protocol overrides. Web API integrations are experimental and used at your sole responsibility.",
+      body: "Connect llama.cpp, MLX, LM Studio, Ollama, vLLM, or another compatible local server. Managed engines provide model controls; in-app llama.cpp is also available. Configure output channels and planner protocols separately. Web API integrations are experimental and used at your sole responsibility.",
       image: "models.webp",
     },
     {
@@ -137,7 +139,7 @@
     {
       index: "04",
       title: "Memory",
-      body: "Control warm memory, STM, LTM, recall profiles, graph links, and per-step evidence retention.",
+      body: "Manage editable profile memories, warm memory, STM, LTM, recall profiles, and bounded task context.",
       image: "memory.webp",
     },
     {
@@ -256,35 +258,100 @@
       .join("");
   }
 
-  function renderInline(text) {
-    let output = escapeHtml(text);
+  function decodeFragment(value) {
+    try { return decodeURIComponent(value); } catch { return value; }
+  }
 
-    output = output.replace(
-      /`([^`]+)`/g,
-      '<code class="inline-code">$1</code>',
-    );
-    output = output.replace(
-      /!\[([^\]]*)\]\(([^)\s]+)\)/g,
-      (match, alt, source) => `<img class="docs-image" src="${cacheUrl(source)}" alt="${alt}" loading="lazy" />`,
-    );
-    output = output.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, href) =>
-      href.startsWith("#")
-        ? `<a href="${href}">${label}</a>`
-        : `<a href="${href}" target="_blank" rel="noreferrer">${label}</a>`,
-    );
-    output = output.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    output = output.replace(/__([^_]+)__/g, "<strong>$1</strong>");
-    output = output.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    output = output.replace(/_([^_]+)_/g, "<em>$1</em>");
+  function safeMarkdownUrl(value, image = false) {
+    const url = String(value).trim();
+    if (!url || /[\u0000-\u0020\u007f\\]/.test(url)) return null;
+    if (/^[a-z][a-z\d+.-]*:/i.test(url)) {
+      return (image ? /^https?:/i : /^(?:https?:|mailto:)/i).test(url) ? url : null;
+    }
+    return url.startsWith("//") ? null : url;
+  }
 
-    return output;
+  // Render text tokens individually so formatting never rewrites generated tags,
+  // code, URLs, or image attributes. Raw HTML stays visible as plain text.
+  function renderInline(value, context = {}, allowLinks = true) {
+    const text = String(value);
+    let html = "";
+    let index = 0;
+    while (index < text.length) {
+      const rest = text.slice(index);
+      const escaped = rest.match(/^\\([\\`*{}\[\]()#+\-.!_>~|])/);
+      if (escaped) {
+        html += escapeHtml(escaped[1]);
+        index += escaped[0].length;
+        continue;
+      }
+      const code = rest.match(/^(`+)([\s\S]*?)\1(?!`)/);
+      if (code) {
+        html += `<code class="inline-code">${escapeHtml(code[2])}</code>`;
+        index += code[0].length;
+        continue;
+      }
+      const link = allowLinks && rest.match(/^(!?)\[([^\]]*)\]\(\s*(<[^>]+>|(?:[^()\s\\]|\\.|\([^()]*\))+)(?:\s+["']([^"']*)["'])?\s*\)/);
+      if (link) {
+        const isImage = link[1] === "!";
+        const destination = link[3].replace(/^<|>$/g, "").replace(/\\([()])/g, "$1");
+        let url = safeMarkdownUrl(destination, isImage);
+        const label = link[2];
+        if (url && !isImage && url.startsWith("#") && !url.startsWith("#/")) {
+          url = context.doc ? docHref(context.doc, decodeFragment(url.slice(1))) : url;
+        }
+        if (url && isImage) {
+          html += `<button class="docs-image-button" type="button" aria-label="${escapeHtml(`Enlarge image: ${label || "Documentation screenshot"}`)}"><img class="docs-image" src="${escapeHtml(cacheUrl(url))}" alt="${escapeHtml(label)}" loading="lazy" decoding="async" /><span class="docs-image-hint" aria-hidden="true">Enlarge image ↗</span></button>`;
+        } else if (url) {
+          const external = /^https?:/i.test(url);
+          html += `<a href="${escapeHtml(url)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ""}${link[4] ? ` title="${escapeHtml(link[4])}"` : ""}>${renderInline(label, context, false)}</a>`;
+        } else {
+          html += escapeHtml(label);
+        }
+        index += link[0].length;
+        continue;
+      }
+      const strong = rest.match(/^(\*\*|__)(?=\S)(.+?\S|\S)\1/);
+      const emphasis = rest.match(/^(\*|_)(?=\S)([^\n]+?\S|\S)\1/);
+      const format = strong || emphasis;
+      const insideWord = format?.[1].includes("_") && /[\p{L}\p{N}]/u.test(text[index - 1] || "");
+      if (format && !insideWord) {
+        const tag = strong ? "strong" : "em";
+        html += `<${tag}>${renderInline(format[2], context, allowLinks)}</${tag}>`;
+        index += format[0].length;
+        continue;
+      }
+      html += escapeHtml(text[index]);
+      index += 1;
+    }
+    return html;
+  }
+
+  function plainMarkdown(value) {
+    return String(value)
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+      .replace(/[`*_#>|]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function headingId(text, context) {
+    const base = plainMarkdown(text).toLowerCase()
+      .replace(/[^\p{L}\p{N}\s_-]/gu, "")
+      .replace(/\s/g, "-") || "section";
+    let id = base;
+    let suffix = 0;
+    while (context.headingIds.has(id)) id = `${base}-${++suffix}`;
+    context.headingIds.add(id);
+    return id;
   }
 
   function splitTableRow(line) {
     return line
       .trim()
       .replace(/^\||\|$/g, "")
-      .split("|")
+      .split(/(?<!\\)\|/)
       .map((cell) => cell.trim());
   }
 
@@ -296,43 +363,71 @@
     );
   }
 
-  function renderMarkdown(markdown) {
+  function renderList(lines, start, context) {
+    const marker = /^(\s*)([-*+]|\d+[.)])\s+(.+)$/;
+    const first = lines[start].match(marker);
+    const indent = first[1].length;
+    const ordered = /^\d/.test(first[2]);
+    const tag = ordered ? "ol" : "ul";
+    const items = [];
+    let index = start;
+    while (index < lines.length) {
+      const item = lines[index].match(marker);
+      if (!item || item[1].length !== indent || /^\d/.test(item[2]) !== ordered) break;
+      const contentIndent = item[0].length - item[3].length;
+      const content = [item[3]];
+      index += 1;
+      while (index < lines.length) {
+        const line = lines[index];
+        if (!line.trim()) {
+          let next = index + 1;
+          while (next < lines.length && !lines[next].trim()) next += 1;
+          const nextLine = lines[next] || "";
+          const nextItem = nextLine.match(marker);
+          if (nextLine.match(/^\s*/)[0].length > indent ||
+              (nextItem && nextItem[1].length === indent && /^\d/.test(nextItem[2]) === ordered)) {
+            content.push(""); index += 1; continue;
+          }
+          break;
+        }
+        const lineIndent = line.match(/^\s*/)[0].length;
+        if (lineIndent <= indent) break;
+        content.push(line.slice(Math.min(contentIndent, lineIndent)));
+        index += 1;
+      }
+      items.push(`<li>${renderMarkdown(content.join("\n"), context)}</li>`);
+    }
+    const number = ordered ? parseInt(first[2], 10) : 1;
+    return { html: `<${tag}${ordered && number !== 1 ? ` start="${number}"` : ""}>${items.join("")}</${tag}>`, index };
+  }
+
+  function renderMarkdown(markdown, context = {}) {
+    context.headingIds ||= new Set();
+    context.headings ||= [];
     const lines = String(markdown).replace(/\r\n?/g, "\n").split("\n");
     const html = [];
     let index = 0;
     let paragraph = [];
-    let listType = null;
-    let listItems = [];
 
     function flushParagraph() {
       if (!paragraph.length) return;
-      html.push(`<p>${renderInline(paragraph.join(" "))}</p>`);
+      html.push(`<p>${renderInline(paragraph.join(" "), context)}</p>`);
       paragraph = [];
-    }
-
-    function flushList() {
-      if (!listType || !listItems.length) return;
-      html.push(
-        `<${listType}>${listItems
-          .map((item) => `<li>${renderInline(item)}</li>`)
-          .join("")}</${listType}>`,
-      );
-      listType = null;
-      listItems = [];
     }
 
     while (index < lines.length) {
       const line = lines[index];
 
-      if (/^```/.test(line.trim())) {
+      const fence = line.trim().match(/^(`{3,}|~{3,})(.*)$/);
+      if (fence) {
         flushParagraph();
-        flushList();
 
-        const language = line.trim().slice(3).trim();
+        const language = fence[2].trim();
+        const closingFence = new RegExp(`^${fence[1][0]}{${fence[1].length},}\\s*$`);
         const codeLines = [];
         index += 1;
 
-        while (index < lines.length && !/^```/.test(lines[index].trim())) {
+        while (index < lines.length && !closingFence.test(lines[index].trim())) {
           codeLines.push(lines[index]);
           index += 1;
         }
@@ -353,7 +448,6 @@
         isTableSeparator(lines[index + 1])
       ) {
         flushParagraph();
-        flushList();
 
         const headers = splitTableRow(line);
         index += 2;
@@ -369,11 +463,11 @@
         }
 
         html.push(`
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Scrollable table">
             <table>
               <thead>
                 <tr>${headers
-                  .map((header) => `<th>${renderInline(header)}</th>`)
+                  .map((header) => `<th>${renderInline(header, context)}</th>`)
                   .join("")}</tr>
               </thead>
               <tbody>
@@ -381,7 +475,7 @@
                   .map(
                     (row) => `
                       <tr>${row
-                        .map((cell) => `<td>${renderInline(cell)}</td>`)
+                        .map((cell) => `<td>${renderInline(cell, context)}</td>`)
                         .join("")}</tr>
                     `,
                   )
@@ -396,16 +490,15 @@
       const heading = line.match(/^(#{1,6})\s+(.+)$/);
       if (heading) {
         flushParagraph();
-        flushList();
         const level = heading[1].length;
         const text = heading[2].trim();
-        const id = text
-          .toLowerCase()
-          .replace(/<[^>]+>/g, "")
-          .replace(/[^\w가-힣]+/g, "-")
-          .replace(/^-+|-+$/g, "");
+        const id = headingId(text, context);
+        context.headings.push({ id, level, text: plainMarkdown(text) });
+        const permalink = context.doc && level > 1
+          ? `<a class="heading-permalink" href="${docHref(context.doc, id)}" aria-label="${escapeHtml(`Link to ${plainMarkdown(text)}`)}">#</a>`
+          : "";
         html.push(
-          `<h${level} id="${escapeHtml(id)}">${renderInline(text)}</h${level}>`,
+          `<h${level} id="${escapeHtml(id)}" tabindex="-1">${renderInline(text, context)}${permalink}</h${level}>`,
         );
         index += 1;
         continue;
@@ -413,32 +506,21 @@
 
       if (/^\s*([-*_])(?:\s*\1){2,}\s*$/.test(line)) {
         flushParagraph();
-        flushList();
         html.push("<hr />");
         index += 1;
         continue;
       }
 
-      const unordered = line.match(/^\s*[-*+]\s+(.+)$/);
-      const ordered = line.match(/^\s*\d+\.\s+(.+)$/);
-
-      if (unordered || ordered) {
+      if (/^\s*(?:[-*+]|\d+[.)])\s+.+$/.test(line)) {
         flushParagraph();
-        const nextListType = unordered ? "ul" : "ol";
-
-        if (listType && listType !== nextListType) {
-          flushList();
-        }
-
-        listType = nextListType;
-        listItems.push((unordered || ordered)[1]);
-        index += 1;
+        const list = renderList(lines, index, context);
+        html.push(list.html);
+        index = list.index;
         continue;
       }
 
       if (line.startsWith(">")) {
         flushParagraph();
-        flushList();
         const quoteLines = [];
 
         while (index < lines.length && lines[index].startsWith(">")) {
@@ -447,14 +529,13 @@
         }
 
         html.push(
-          `<blockquote>${renderMarkdown(quoteLines.join("\n"))}</blockquote>`,
+          `<blockquote>${renderMarkdown(quoteLines.join("\n"), context)}</blockquote>`,
         );
         continue;
       }
 
       if (!line.trim()) {
         flushParagraph();
-        flushList();
         index += 1;
         continue;
       }
@@ -464,7 +545,6 @@
     }
 
     flushParagraph();
-    flushList();
 
     return html.join("\n");
   }
@@ -1019,7 +1099,7 @@
             <ul class="speed-list">
               <li><strong>Tool Builder</strong> — author custom tools with your own parameters, logic, and permission level.</li>
               <li><strong>Tool Recipes</strong> — save multi-step tool workflows and invoke a whole pipeline as one action.</li>
-              <li><strong>MCP connectors</strong> — plug in any Model Context Protocol server to borrow its tools instantly.</li>
+              <li><strong>MCP connectors</strong> — connect supported stdio and HTTP Model Context Protocol servers and review their tools.</li>
               <li><strong>Installable bot services</strong> — extend delivery and integrations as drop-in packages.</li>
             </ul>
           </div>
@@ -1038,14 +1118,14 @@
               <h2>An agent loop optimized end to end.</h2>
 
               <p class="section-description">
-                The step loop is built around prompt-cache reuse, so long agent
-                runs stay fast even on local hardware.
+                The step loop reuses stable prompt prefixes and runtime state where
+                supported, reducing repeated preparation during long agent runs.
               </p>
             </div>
 
             <ul class="speed-list">
-              <li><strong>Step-context KV cache</strong> — a stable system prefix keeps the prompt cache hot across every step of a run.</li>
-              <li><strong>Fast runtime cache</strong> — agent context is prepared once and guarded, not rebuilt per turn.</li>
+              <li><strong>Step-context KV cache</strong> — stable prompt prefixes support cache reuse when the model server accepts them.</li>
+              <li><strong>Fast runtime cache</strong> — reuse valid prompt, tool, and profile state; relevant configuration changes invalidate it.</li>
               <li><strong>Parallel tool batches</strong> — independent tool calls execute concurrently inside a single step.</li>
               <li><strong>Streaming everything</strong> — plans, reasoning, tool output, and files render as they are produced.</li>
             </ul>
@@ -1191,12 +1271,12 @@
                 One LLM already drives multiple agents — individual,
                 collaboration, and debate — and per-agent engine and model
                 assignment lets strong machines run a different model behind
-                every agent.
+                every agent in Ultimate / Developer editions.
               </p>
 
               <ul class="feature-list">
                 <li>Individual, collaboration, and debate orchestration modes</li>
-                <li>Per-agent engine and model assignment</li>
+                <li>Individual engine and model routes in Ultimate / Developer</li>
                 <li>Master profiles — each with its own agents, settings, and sandbox</li>
                 <li>Per-agent policy profiles for behavior and approvals</li>
               </ul>
@@ -1228,7 +1308,7 @@
                 <li>Warm memory → STM → LTM → knowledge graph</li>
                 <li>Recall profiles for boot, passive, and active retrieval</li>
                 <li>Active memory the agent saves on purpose (add_memory / memory_shelf)</li>
-                <li>Passive recall that summarizes conversations automatically</li>
+                <li>Warm-memory commits preserve conversation context under your chosen policy</li>
               </ul>
             </div>
           </div>
@@ -1286,8 +1366,8 @@
               <h2>Product pages and technical documentation, together.</h2>
 
               <p>
-                Markdown documentation is embedded in a static JavaScript file,
-                so the reader works without npm, a server, or a build process.
+                Follow the illustrated setup guides, explore the dashboard, and
+                learn how models, tools, memory, and permissions work together.
               </p>
             </div>
 
@@ -1345,7 +1425,7 @@
         <div class="container footer-inner">
           <span>DeskLemurOS</span>
           <span>Toward a Local Agent OS.</span>
-          ${featureEnabled("documentation") ? '<a href="#/docs/user-guide/licenses-and-open-source-notices">License &amp; Open Source Notices</a>' : '<a href="../index.html">DeskLemur Home</a>'}
+          ${featureEnabled("documentation") ? '<a href="#/docs/notices/licensing">License &amp; Open Source Notices</a>' : '<a href="../index.html">DeskLemur Home</a>'}
         </div>
       </footer>
     `;
@@ -1365,181 +1445,208 @@
     }, {});
   }
 
-  function docHref(doc) {
-    return `#/docs/${encodeURI(doc.slug)}`;
+  function docHref(doc, section = "") {
+    const slug = String(doc.slug).split("/").map(encodeURIComponent).join("/");
+    return `#/docs/${slug}${section ? `#${encodeURIComponent(section)}` : ""}`;
+  }
+
+  function docsRoute(hash) {
+    const [slug, ...section] = hash.replace(/^#\/docs\/?/, "").split("#");
+    return { slug: decodeFragment(slug), section: decodeFragment(section.join("#")) };
   }
 
   function findDoc(slug) {
-    const normalized = decodeURIComponent(slug || "")
-      .replace(/^\/+|\/+$/g, "")
-      .toLowerCase();
-
+    const normalized = decodeFragment(slug || "").replace(/^\/+|\/+$/g, "").toLowerCase();
     if (!normalized) return docs[0];
-    return (
-      docs.find((doc) => String(doc.slug).toLowerCase() === normalized) ||
-      docs[0]
-    );
+    return docs.find((doc) => String(doc.slug).toLowerCase() === normalized);
+  }
+
+  const searchableDocs = new Map(docs.map((doc) => [doc.slug, plainMarkdown(doc.content)]));
+  let docsQuery = "";
+  let renderedDocSlug = null;
+  let docsController = null;
+
+  function matchingDocs(query) {
+    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return docs.filter((doc) => {
+      const haystack = `${doc.title} ${doc.group} ${searchableDocs.get(doc.slug)}`.toLowerCase();
+      return words.every((word) => haystack.includes(word));
+    });
   }
 
   function sidebarTemplate(activeDoc, query = "") {
-    const normalizedQuery = query.trim().toLowerCase();
-    const filteredDocs = docs.filter((doc) => {
-      if (!normalizedQuery) return true;
-
-      return `${doc.title} ${doc.group} ${doc.content}`
-        .toLowerCase()
-        .includes(normalizedQuery);
-    });
-
+    const filteredDocs = matchingDocs(query);
     const groups = groupDocs(filteredDocs);
-
-    const markup = Object.entries(groups)
-      .map(([groupName, entries]) => {
-        const links = entries
-          .map(
-            (entry) => `
-              <a
-                class="docs-link ${
-                  entry.slug === activeDoc.slug ? "active" : ""
-                }"
-                href="${docHref(entry)}"
-              >
-                ${escapeHtml(entry.title)}
-              </a>
-            `,
-          )
-          .join("");
-
-        return `
-          <section class="docs-group">
-            <h2>${escapeHtml(groupName)}</h2>
-            ${links}
-          </section>
-        `;
-      })
-      .join("");
-
-    return markup || '<p class="docs-no-results">No matching documents.</p>';
+    const term = query.trim().toLowerCase().split(/\s+/)[0];
+    const markup = Object.entries(groups).map(([groupName, entries]) => `
+      <section class="docs-group">
+        <h2>${escapeHtml(groupName)}</h2>
+        ${entries.map((entry) => {
+          const content = searchableDocs.get(entry.slug);
+          const start = Math.max(0, content.toLowerCase().indexOf(term) - 45);
+          const snippet = content.slice(start, start + 140);
+          return `<a class="docs-link ${entry.slug === activeDoc?.slug ? "active" : ""}"
+            href="${docHref(entry)}"${entry.slug === activeDoc?.slug ? ' aria-current="page"' : ""}>
+            <span>${escapeHtml(entry.title)}</span>
+            ${term ? `<small>${start ? "…" : ""}${escapeHtml(snippet)}${start + 140 < content.length ? "…" : ""}</small>` : ""}
+          </a>`;
+        }).join("")}
+      </section>`).join("");
+    return markup || '<p class="docs-no-results">No matching documents. Try a model, tool, or dashboard setting.</p>';
   }
 
   function paginationTemplate(activeDoc) {
     const activeIndex = docs.findIndex((doc) => doc.slug === activeDoc.slug);
     const previousDoc = activeIndex > 0 ? docs[activeIndex - 1] : null;
-    const nextDoc =
-      activeIndex >= 0 && activeIndex < docs.length - 1
-        ? docs[activeIndex + 1]
-        : null;
+    const nextDoc = activeIndex < docs.length - 1 ? docs[activeIndex + 1] : null;
+    return `<footer class="docs-pagination" aria-label="Document navigation">
+      ${previousDoc ? `<a href="${docHref(previousDoc)}"><span>Previous</span><strong>${escapeHtml(previousDoc.title)}</strong></a>` : "<span></span>"}
+      ${nextDoc ? `<a class="next" href="${docHref(nextDoc)}"><span>Next</span><strong>${escapeHtml(nextDoc.title)}</strong></a>` : "<span></span>"}
+    </footer>`;
+  }
 
-    return `
-      <footer class="docs-pagination">
-        ${
-          previousDoc
-            ? `
-              <a href="${docHref(previousDoc)}">
-                <span>Previous</span>
-                <strong>${escapeHtml(previousDoc.title)}</strong>
-              </a>
-            `
-            : "<span></span>"
-        }
+  function sectionsTemplate(doc, headings) {
+    const sections = headings.filter(({ level }) => level === 2 || level === 3);
+    if (!sections.length) return "";
+    return `<aside class="docs-outline"><details open>
+      <summary>On this page</summary>
+      <nav aria-label="On this page">${sections.map(({ id, level, text }) =>
+        `<a class="docs-section-link level-${level}" href="${docHref(doc, id)}">${escapeHtml(text)}</a>`).join("")}
+      </nav>
+    </details></aside>`;
+  }
 
-        ${
-          nextDoc
-            ? `
-              <a class="next" href="${docHref(nextDoc)}">
-                <span>Next</span>
-                <strong>${escapeHtml(nextDoc.title)}</strong>
-              </a>
-            `
-            : "<span></span>"
-        }
-      </footer>
-    `;
+  function focusTrap(event, container) {
+    if (event.key !== "Tab") return;
+    const elements = [...container.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), summary, [tabindex="0"]')]
+      .filter((element) => element.getClientRects().length);
+    const first = elements[0];
+    const last = elements[elements.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first?.focus();
+    }
+  }
+
+  function scrollDocsSection(section) {
+    requestAnimationFrame(() => {
+      const target = section && document.getElementById(section);
+      if (target && target.closest(".markdown-body")) {
+        target.scrollIntoView({ behavior: "instant", block: "start" });
+        target.focus({ preventScroll: true });
+      } else {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
+      document.querySelectorAll(".docs-section-link").forEach((link) => {
+        const active = docsRoute(link.hash).section === section;
+        if (active) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+    });
   }
 
   function renderDocs(hash) {
     applyPageTheme("docs");
+    docsController?.abort();
+    docsController = new AbortController();
+    const { signal } = docsController;
+    document.body.classList.remove("docs-menu-open");
     if (!docs.length) {
-      app.innerHTML = `
-        <main class="empty-docs">
-          <h1>No documentation is embedded.</h1>
-          <p>Add entries to <code>docs-data.js</code>.</p>
-          <a href="#/">Return home</a>
-        </main>
-      `;
+      app.innerHTML = '<main class="empty-docs"><h1>Documentation is unavailable.</h1><p>Please try again later.</p><a href="#/">Return home</a></main>';
       return;
     }
-
-    const slug = hash.replace(/^#\/docs\/?/, "");
+    const { slug, section } = docsRoute(hash);
     const activeDoc = findDoc(slug);
-
-    document.title = `${activeDoc.title} — DeskLemurOS`;
-
+    renderedDocSlug = activeDoc?.slug || null;
+    const context = { doc: activeDoc, headings: [] };
+    const content = activeDoc ? renderMarkdown(activeDoc.content, context) : "";
+    document.title = `${activeDoc?.title || "Document not found"} — DeskLemurOS`;
     app.innerHTML = `
+      <a class="docs-skip-link" href="#docs-content">Skip to document</a>
       <div class="docs-app">
-        <aside class="docs-sidebar">
+        <aside class="docs-sidebar" id="docs-sidebar" aria-label="Documentation library">
+          <button class="docs-close-button" type="button" aria-label="Close documentation navigation">Close ×</button>
           <a class="docs-brand" href="#/">
-            <img class="brand-mark brand-img small" src="./assets/icon.png" alt="DeskLemurOS icon" />
-            <span>
-              <strong>DeskLemurOS</strong>
-              <small>DOCUMENTATION</small>
-            </span>
+            <img class="brand-mark brand-img small" src="${cacheUrl("./assets/icon.png")}" alt="" />
+            <span><strong>DeskLemurOS</strong><small>DOCUMENTATION</small></span>
           </a>
           <a class="docs-parent-link" href="../index.html">← DeskLemur</a>
-
-          <label class="docs-search">
-            <span>SEARCH</span>
-            <input
-              type="search"
-              placeholder="Search documentation..."
-              autocomplete="off"
-            />
+          <label class="docs-search"><span>SEARCH ALL DOCUMENTS</span>
+            <input type="search" placeholder="Models, tools, setup…" autocomplete="off" value="${escapeHtml(docsQuery)}" aria-controls="docs-navigation" />
           </label>
-
-          <nav class="docs-navigation" aria-label="Documentation">
-            ${sidebarTemplate(activeDoc)}
-          </nav>
+          <p class="docs-search-status" role="status" aria-live="polite"></p>
+          <nav class="docs-navigation" id="docs-navigation" aria-label="Documentation">${sidebarTemplate(activeDoc, docsQuery)}</nav>
         </aside>
-
+        <button class="docs-menu-backdrop" type="button" tabindex="-1" aria-label="Close documentation navigation" hidden></button>
         <main class="docs-main">
           <header class="docs-topbar">
-            <button class="docs-menu-button" type="button">
-              DOCUMENTS
-            </button>
-
-            <span class="docs-path">
-              docs / ${escapeHtml(activeDoc.path || activeDoc.slug)}
-            </span>
-
-            <div class="docs-top-actions">
-              <a href="../index.html">DeskLemur</a>
-              <a href="#/">Product</a>
-              <a href="${escapeHtml(githubUrl())}" target="_blank" rel="noreferrer">
-                GitHub ↗
-              </a>
-            </div>
+            <button class="docs-menu-button" type="button" aria-controls="docs-sidebar" aria-expanded="false">DOCUMENTS</button>
+            <span class="docs-path">${escapeHtml(activeDoc?.group || "Documentation")}${activeDoc ? ` / ${escapeHtml(activeDoc.title)}` : ""}</span>
+            <div class="docs-top-actions"><a href="../index.html">DeskLemur</a><a href="#/">Product</a><a href="${escapeHtml(githubUrl())}" target="_blank" rel="noopener noreferrer">GitHub ↗</a></div>
           </header>
-
-          <article class="markdown-body">
-            ${renderMarkdown(activeDoc.content)}
-            ${paginationTemplate(activeDoc)}
-          </article>
+          <div class="docs-reading-layout${context.headings.some(({ level }) => level === 2 || level === 3) ? " has-outline" : ""}">
+            ${activeDoc ? sectionsTemplate(activeDoc, context.headings) : ""}
+            <article class="markdown-body" id="docs-content" tabindex="-1">
+              ${activeDoc ? `${content}${paginationTemplate(activeDoc)}` : `<h1>Document not found</h1><p>This document may have moved. Search the library or <a href="${docHref(docs[0])}">open the documentation overview</a>.</p>`}
+            </article>
+          </div>
         </main>
-      </div>
-    `;
+      </div>`;
 
-    const searchInput = document.querySelector(".docs-search input");
-    const navigation = document.querySelector(".docs-navigation");
-    const sidebar = document.querySelector(".docs-sidebar");
-    const menuButton = document.querySelector(".docs-menu-button");
-
-    searchInput?.addEventListener("input", (event) => {
-      navigation.innerHTML = sidebarTemplate(activeDoc, event.target.value);
-    });
-
-    menuButton?.addEventListener("click", () => {
-      sidebar?.classList.toggle("mobile-open");
-    });
+    const searchInput = app.querySelector(".docs-search input");
+    const navigation = app.querySelector(".docs-navigation");
+    const sidebar = app.querySelector(".docs-sidebar");
+    const menuButton = app.querySelector(".docs-menu-button");
+    const backdrop = app.querySelector(".docs-menu-backdrop");
+    const main = app.querySelector(".docs-main");
+    const mobile = window.matchMedia("(max-width: 800px)");
+    const setMenuOpen = (open, restoreFocus = true) => {
+      const isOpen = open && mobile.matches;
+      sidebar.classList.toggle("mobile-open", isOpen);
+      sidebar.inert = mobile.matches && !isOpen;
+      sidebar.toggleAttribute("aria-modal", isOpen);
+      if (isOpen) sidebar.setAttribute("role", "dialog");
+      else sidebar.removeAttribute("role");
+      menuButton.setAttribute("aria-expanded", String(isOpen));
+      backdrop.hidden = !isOpen;
+      main.inert = isOpen;
+      document.body.classList.toggle("docs-menu-open", isOpen);
+      if (isOpen) searchInput.focus();
+      else if (restoreFocus && mobile.matches) menuButton.focus();
+    };
+    const updateSearchStatus = () => {
+      const count = matchingDocs(docsQuery).length;
+      app.querySelector(".docs-search-status").textContent = docsQuery.trim()
+        ? `${count} matching document${count === 1 ? "" : "s"}` : `${docs.length} documents`;
+    };
+    searchInput.addEventListener("input", (event) => {
+      docsQuery = event.target.value;
+      navigation.innerHTML = sidebarTemplate(activeDoc, docsQuery);
+      updateSearchStatus();
+    }, { signal });
+    menuButton.addEventListener("click", () => setMenuOpen(true), { signal });
+    backdrop.addEventListener("click", () => setMenuOpen(false), { signal });
+    app.querySelector(".docs-close-button").addEventListener("click", () => setMenuOpen(false), { signal });
+    sidebar.addEventListener("keydown", (event) => {
+      if (!sidebar.classList.contains("mobile-open")) return;
+      if (event.key === "Escape") { event.preventDefault(); setMenuOpen(false); }
+      else focusTrap(event, sidebar);
+    }, { signal });
+    navigation.addEventListener("click", (event) => {
+      if (event.target.closest("a")) setMenuOpen(false, false);
+    }, { signal });
+    mobile.addEventListener("change", () => setMenuOpen(false, false), { signal });
+    app.querySelector(".docs-skip-link").addEventListener("click", (event) => {
+      event.preventDefault();
+      app.querySelector(".markdown-body").focus();
+    }, { signal });
+    if (window.matchMedia("(max-width: 1200px)").matches) {
+      app.querySelector(".docs-outline details")?.removeAttribute("open");
+    }
+    setMenuOpen(false, false);
+    updateSearchStatus();
+    scrollDocsSection(section);
   }
 
   function initializeHeader() {
@@ -1916,7 +2023,7 @@
         <div class="container footer-inner">
           <span>DeskLemurOS</span>
           <span>Operate Intelligence. Own the System.</span>
-          ${featureEnabled("documentation") ? '<a href="#/docs/user-guide/licenses-and-open-source-notices">License &amp; Open Source Notices</a>' : '<a href="../index.html">DeskLemur Home</a>'}
+          ${featureEnabled("documentation") ? '<a href="#/docs/notices/licensing">License &amp; Open Source Notices</a>' : '<a href="../index.html">DeskLemur Home</a>'}
         </div>
       </footer>
     `;
@@ -1924,64 +2031,97 @@
     initializeHeader();
   }
 
+  let closeLightbox = () => {};
+
+  function prepareZoomImages() {
+    app.querySelectorAll(".capability-shot img, .vision-shot img, .section-art img").forEach((image) => {
+      if (image.closest("a, button")) return;
+      image.tabIndex = 0;
+      image.setAttribute("role", "button");
+      image.setAttribute("aria-label", `Enlarge image: ${image.alt || "Product illustration"}`);
+    });
+  }
+
   function route() {
     refreshForNewVersion();
+    closeLightbox(false);
     const hash = window.location.hash || "#/";
-
-    if (hash.startsWith("#/docs") && featureEnabled("documentation")) {
+    const isDocsRoute = /^#\/docs(?:\/|$)/.test(hash);
+    if (isDocsRoute && featureEnabled("documentation")) {
       clearRuntimeDemo();
-      renderDocs(hash);
-    } else if (hash.startsWith("#/vision") && featureEnabled("vision")) {
+      const requestedDoc = findDoc(docsRoute(hash).slug);
+      if (document.body.classList.contains("docs-view") && renderedDocSlug && requestedDoc?.slug === renderedDocSlug) {
+        scrollDocsSection(docsRoute(hash).section);
+      } else {
+        renderDocs(hash);
+      }
+      return;
+    }
+    docsController?.abort();
+    renderedDocSlug = null;
+    document.body.classList.remove("docs-menu-open");
+    if (hash.startsWith("#/vision") && featureEnabled("vision")) {
       clearRuntimeDemo();
       renderVision();
     } else {
-      if (
-        (hash.startsWith("#/docs") && !featureEnabled("documentation")) ||
-        (hash.startsWith("#/vision") && !featureEnabled("vision"))
-      ) {
+      if ((isDocsRoute && !featureEnabled("documentation")) ||
+          (hash.startsWith("#/vision") && !featureEnabled("vision"))) {
         window.history.replaceState(null, "", "#/");
       }
       renderHome();
     }
-
-    const isVirtualPage =
-      hash === "#/" ||
-      hash.startsWith("#/docs") ||
-      hash.startsWith("#/vision");
-    if (isVirtualPage) {
-      window.scrollTo(0, 0);
+    prepareZoomImages();
+    if (hash === "#/" || isDocsRoute || hash.startsWith("#/vision")) {
+      window.scrollTo({ top: 0, behavior: "instant" });
     }
   }
 
   function initLightbox() {
-    const overlay = document.createElement("div");
+    const overlay = document.createElement("dialog");
     overlay.className = "lightbox-overlay";
-    overlay.innerHTML = '<img alt="" />';
+    overlay.setAttribute("aria-label", "Image preview");
+    overlay.setAttribute("aria-describedby", "lightbox-caption");
+    overlay.innerHTML = `<button class="lightbox-close" type="button" autofocus>Close ×</button>
+      <div class="lightbox-stage"><img alt="" /></div>
+      <div class="lightbox-footer"><p id="lightbox-caption"></p><a target="_blank" rel="noopener noreferrer">Open full image ↗</a></div>`;
     document.body.appendChild(overlay);
     const zoomed = overlay.querySelector("img");
-
+    let opener = null;
+    let restoreFocus = true;
+    closeLightbox = (restore = true) => {
+      if (!overlay.open) return;
+      restoreFocus = restore;
+      overlay.close();
+      document.body.classList.remove("lightbox-open");
+    };
+    const openLightbox = (source) => {
+      opener = source.closest("button, a") || source;
+      restoreFocus = true;
+      zoomed.src = source.currentSrc || source.src;
+      zoomed.alt = source.alt || "";
+      overlay.querySelector("#lightbox-caption").textContent = source.alt || "Image preview";
+      overlay.querySelector("a").href = zoomed.src;
+      overlay.showModal();
+      document.body.classList.add("lightbox-open");
+    };
     document.addEventListener("click", (event) => {
-      const source = event.target.closest?.(
-        ".capability-shot img, .vision-shot img, .section-art img, .docs-image",
-      );
-      if (source) {
-        zoomed.src = source.currentSrc || source.src;
-        zoomed.alt = source.alt || "";
-        overlay.classList.add("open");
-        document.body.classList.add("lightbox-open");
-        return;
-      }
-      if (overlay.classList.contains("open")) {
-        overlay.classList.remove("open");
-        document.body.classList.remove("lightbox-open");
-      }
+      const button = event.target.closest?.(".docs-image-button");
+      const source = button?.querySelector("img") || event.target.closest?.(".capability-shot img, .vision-shot img, .section-art img");
+      if (source) { event.preventDefault(); openLightbox(source); }
     });
-
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        overlay.classList.remove("open");
-        document.body.classList.remove("lightbox-open");
-      }
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const source = event.target.closest?.('img[role="button"]');
+      if (source) { event.preventDefault(); openLightbox(source); }
+    });
+    overlay.addEventListener("keydown", (event) => focusTrap(event, overlay));
+    overlay.querySelector(".lightbox-close").addEventListener("click", () => closeLightbox());
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closeLightbox();
+    });
+    overlay.addEventListener("close", () => {
+      document.body.classList.remove("lightbox-open");
+      if (restoreFocus && opener?.isConnected) opener.focus({ preventScroll: true });
     });
   }
 
