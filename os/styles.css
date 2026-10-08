@@ -2887,7 +2887,7 @@ body.home-view.light-theme .lightbox-footer a { color: #944019; }
   .security-map-scale { white-space: normal; flex-wrap: wrap; line-height: 1.8; }
 }
 
-/* The same edition guide is used in the desktop app and on this page. */
+/* Public edition copy is derived from the app's capability catalog. */
 .editions-section { border-top: 1px solid var(--line); }
 .edition-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 36px; }
 .edition-card { padding: 26px 23px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
@@ -2907,6 +2907,7 @@ body.home-view.light-theme .lightbox-footer a { color: #944019; }
 .edition-table caption { text-align: left; padding: 0 24px 16px; color: var(--text); font-weight: 600; }
 .edition-table th, .edition-table td { border-top: 1px solid var(--line); padding: 17px 18px; vertical-align: top; overflow-wrap: anywhere; }
 .edition-table thead th { background: var(--panel); color: var(--orange-bright); }
+.edition-availability { display: block; margin-top: 6px; color: var(--muted); font-size: .7rem; line-height: 1.5; font-weight: 400; }
 .edition-table th:first-child { width: 27%; }
 .edition-table tbody th { font-weight: 600; }
 .edition-table tbody th span { display: block; margin-top: 6px; color: var(--muted); font-weight: 400; font-size: .74rem; }

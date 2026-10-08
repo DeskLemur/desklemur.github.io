@@ -126,7 +126,7 @@
     {
       index: "01",
       title: "Models",
-      body: "Standard and Pro use bundled in-app llama.cpp only. Ultimate and Developer also support compatible local or LAN servers and engine/provider choice.",
+      body: "Standard and Pro use bundled in-app llama.cpp only. Other model connections are limited to Ultimate and Developer, which are not publicly available.",
       image: "models.webp",
     },
     {
@@ -594,12 +594,12 @@
     if (!guide || !Array.isArray(guide.editions) || !Array.isArray(guide.rows)) return '';
     const editions = guide.editions;
     return `<section class="section editions-section" id="editions" aria-labelledby="editions-title"><div class="container">
-      <div class="section-heading"><div><div class="section-kicker">FOUR EDITIONS</div><h2 id="editions-title">Choose how you want to work.</h2></div><p>From bundled local inference to individual model routes and research controls. Compare the features included in each edition.</p></div>
-      <div class="edition-cards">${editions.map(edition => `<article class="edition-card"><span class="edition-card-label">${edition.id === 'developer' ? 'RESEARCH & DEVELOPMENT' : 'DESKLEMUROS'}</span><h3>${escapeHtml(edition.name)}</h3><p>${escapeHtml(edition.summary)}</p></article>`).join('')}</div>
-      <p class="edition-engine-note"><strong>Standard and Pro use bundled in-app llama.cpp only.</strong> Existing model servers, other engines, and web-provider routes require Ultimate or Developer. Connected tools and the optional chat API are separate from model inference.</p>
+      <div class="section-heading"><div><div class="section-kicker">EDITION OVERVIEW</div><h2 id="editions-title">Compare the editions.</h2></div><p>Standard and Pro focus on bundled local inference. Ultimate and Developer are not publicly available; their features are shown for reference.</p></div>
+      <div class="edition-cards">${editions.map(edition => `<article class="edition-card" data-edition="${escapeHtml(edition.id)}"><span class="edition-card-label">${edition.availability === 'closed' ? 'NOT PUBLICLY AVAILABLE' : 'DESKLEMUROS'}</span><h3>${escapeHtml(edition.name)}</h3><p>${escapeHtml(edition.summary)}</p></article>`).join('')}</div>
+      <p class="edition-engine-note"><strong>Standard and Pro use bundled in-app llama.cpp only.</strong> Existing model servers, other engines, and web-provider routes are limited to the closed Ultimate and Developer editions. Connected tools and the optional app chat API are separate from model inference.</p>
       <details class="edition-comparison"><summary>Compare features across editions <span>Model connections, task state, and research tools</span></summary>
         <p class="edition-table-hint" id="edition-table-hint">On smaller screens, scroll the comparison horizontally to see every edition.</p>
-        <div class="edition-table-scroll" tabindex="0" role="region" aria-label="Edition feature comparison" aria-describedby="edition-table-hint"><table class="edition-table"><caption>Feature availability by edition</caption><thead><tr><th scope="col">Feature</th>${editions.map(edition=>`<th scope="col">${escapeHtml(edition.name)}</th>`).join('')}</tr></thead><tbody>${guide.rows.map(row=>`<tr><th scope="row">${escapeHtml(row.label)}${row.description ? `<span>${escapeHtml(row.description)}</span>` : ''}</th>${editions.map(edition=>`<td>${escapeHtml(String(row.values?.[edition.id] ?? '—'))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
+        <div class="edition-table-scroll" tabindex="0" role="region" aria-label="Edition feature comparison" aria-describedby="edition-table-hint"><table class="edition-table"><caption>Features by edition · Ultimate and Developer are not publicly available</caption><thead><tr><th scope="col">Feature</th>${editions.map(edition=>`<th scope="col">${escapeHtml(edition.name)}${edition.availability === 'closed' ? '<span class="edition-availability">Not publicly available</span>' : ''}</th>`).join('')}</tr></thead><tbody>${guide.rows.map(row=>`<tr><th scope="row">${escapeHtml(row.label)}${row.description ? `<span>${escapeHtml(row.description)}</span>` : ''}</th>${editions.map(edition=>`<td>${escapeHtml(String(row.values?.[edition.id] ?? '—'))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
         <div class="edition-notes">${(guide.notes || []).map(note=>`<article><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.body || note.text || '')}</p></article>`).join('')}</div>
       </details>
     </div></section>`;
@@ -608,8 +608,8 @@
   function faqTemplate() {
     const entries = [
       ['Does local-first mean every task stays offline?', 'Local model inference can run on your machine. Web research, remote MCP servers, model downloads, and configured web providers can contact external services. Review the connections and tools enabled for your task.'],
-      ['Can I use a model server I already have?', 'Standard and Pro use bundled in-app llama.cpp only and cannot connect to an existing model server. Ultimate and Developer can connect to supported local or LAN servers, including llama.cpp, MLX, LM Studio, Ollama, and vLLM. Use the endpoint and model ID actually served by your setup.'],
-      ['Can each agent use a different model?', 'Agents inherit the workspace model by default. Ultimate / Developer editions provide individual engine and model routes. You still need an available server and enough resources for the models you choose.'],
+      ['Can I use a model server I already have?', 'Standard and Pro use bundled in-app llama.cpp only and cannot connect to an existing model server. Compatible local or LAN servers and other model connections are supported only in Ultimate and Developer, which are not publicly available.'],
+      ['Can each agent use a different model?', 'Standard and Pro agents share the workspace model. Individual engine and model connections are limited to Ultimate and Developer, which are not publicly available.'],
       ['What do memory edits change?', 'The profile-memory manager lets you select an agent and review what it has learned about you. Editing can change future recall; Forget removes the selected profile memory. It does not erase your chat history or another agent’s profile memories.'],
       ['Does a benchmark prove a tool action will succeed?', 'Protocol and MCP benchmarks evaluate generated output, parsing, or argument validity. MCP argument measurements do not execute the tools. A valid argument or high score is useful evidence, but a real task also needs the right action and a verified result.'],
       ['Where can I follow availability and changes?', 'Use the project repository and published updates for release information. Features and limits vary by edition, platform, and installed build. The product examples on this page are illustrative, not live measurements of your system.'],
@@ -1203,10 +1203,10 @@
               ${capabilityCards}
             </div>
 
-            <div class="engine-strip" aria-label="Local engines available in Ultimate and Developer">
+            <div class="engine-strip" aria-label="Model engines for the closed Ultimate and Developer editions">
               <span class="engine-strip-label">ULTIMATE / DEVELOPER</span>
               ${engineStrip}
-              <span class="engine-strip-note">Standard and Pro use bundled in-app llama.cpp only. Ultimate and Developer also support these local API engines. Web API integrations are <b>experimental</b>, may not work as expected, and are used at your sole responsibility.</span>
+              <span class="engine-strip-note">Standard and Pro use bundled in-app llama.cpp only. The model-server options shown here are limited to Ultimate and Developer, which are <b>not publicly available</b>. Web API integrations in those editions are experimental.</span>
             </div>
           </div>
         </section>
@@ -1397,15 +1397,14 @@
               <h2>Many agents, one runtime.</h2>
 
               <p>
-                One LLM already drives multiple agents — individual,
-                collaboration, and debate — and per-agent engine and model
-                assignment lets strong machines run a different model behind
-                every agent in Ultimate / Developer editions.
+                One model can drive multiple agents in individual, collaboration,
+                and debate modes. Individual model connections are limited to
+                Ultimate and Developer, which are not publicly available.
               </p>
 
               <ul class="feature-list">
                 <li>Individual, collaboration, and debate orchestration modes</li>
-                <li>Individual engine and model routes in Ultimate / Developer</li>
+                <li>Shared workspace model for Standard and Pro agents</li>
                 <li>Master profiles — each with its own agents, settings, and sandbox</li>
                 <li>Master-scoped policy settings with visible runtime checks</li>
               </ul>
@@ -1450,9 +1449,9 @@
               <h2>The local moment.</h2>
 
               <p>
-                Apple Silicon systems, including Mac Studio, and supported
-                NVIDIA or AMD setups can host local model servers for Ultimate and Developer. DeskLemurOS
-                connects the model to agents, memory, and the tools you choose.
+                Local AI starts with your hardware, memory, and model.
+                Standard and Pro run through the bundled in-app llama.cpp engine.
+                DeskLemurOS connects the model to agents, memory, and the tools you choose.
               </p>
 
               <ul class="feature-list">
@@ -2028,14 +2027,13 @@
             </figure>
             <h2>A shared model by default. Individual routes when needed.</h2>
             <p class="section-description">
-              Agents can share the workspace model. Ultimate / Developer editions also
-              expose individual engine and model routes for an agent, including delegated
-              and bot requests. These settings choose a connection; they do not automatically
-              start another model server or guarantee that several models fit in memory.
+              Standard and Pro agents share the workspace model. Individual model
+              connections are supported in Ultimate and Developer, which are not
+              publicly available. Running several models also requires enough hardware resources.
             </p>
             <div class="vision-formula">
               <div><span class="ff-tag">shared</span><code>agent → workspace model</code><span class="ff-note">inherit the configured connection</span></div>
-              <div><span class="ff-tag">individual</span><code>agent → selected engine + model</code><span class="ff-note">where available in your edition</span></div>
+              <div><span class="ff-tag">individual</span><code>agent → selected engine + model</code><span class="ff-note">Ultimate / Developer · not publicly available</span></div>
             </div>
           </div>
         </section>
