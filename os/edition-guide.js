@@ -13,7 +13,7 @@ window.DESKLEMUR_EDITION_GUIDE = {
     {
       "id": "pro",
       "name": "Pro",
-      "summary": "Bundled local inference with DPMS to help keep ongoing work in context.",
+      "summary": "Bundled local inference with DPMS for lower token usage and faster processing.",
       "availability": "listed"
     },
     {
@@ -77,7 +77,7 @@ window.DESKLEMUR_EDITION_GUIDE = {
     {
       "id": "execution_state",
       "label": "DPMS",
-      "description": "Helps agents keep track of ongoing work.",
+      "description": "Reduces token usage to speed up processing.",
       "values": {
         "standard": "Not included",
         "pro": "Available",
@@ -144,7 +144,7 @@ window.DESKLEMUR_EDITION_GUIDE = {
   "notes": [
     {
       "title": "DPMS",
-      "body": "Helps maintain context during ongoing work. Standard still includes regular memory features."
+      "body": "Reduces token usage to speed up processing."
     },
     {
       "title": "Compatibility",
