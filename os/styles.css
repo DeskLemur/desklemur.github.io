@@ -2810,8 +2810,13 @@ body.home-view.light-theme .lightbox-footer a { color: #944019; }
 .home-view .hero { padding: 76px 0 70px; }
 .home-view .hero h1 { font-size: clamp(2.9rem, 5.7vw, 5.3rem); line-height: 1.04; letter-spacing: -0.055em; }
 .home-view .hero-lead { max-width: 35rem; font-size: 1.2rem; line-height: 1.7; }
-.hero-facts { display: flex; flex-wrap: wrap; gap: 10px 20px; margin: 28px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .77rem; }
-.hero-facts li::before { content: '•'; color: var(--orange); margin-right: 7px; }
+.hero-setup { max-width: 35rem; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); }
+.hero-setup h2 { margin: 0 0 8px; color: var(--muted); font-size: .68rem; font-weight: 600; letter-spacing: .1em; line-height: 1.5; text-transform: uppercase; }
+.hero-setup p { margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.7; }
+.hero-setup p + p { margin-top: 4px; }
+.hero-setup strong { color: var(--text); font-weight: 500; }
+.hero-setup a { display: inline-block; padding-block: 4px; color: var(--orange-bright); text-decoration: underline; text-underline-offset: 4px; }
+.hero-setup a:hover { color: var(--text); }
 .product-preview { min-width: 0; }
 .product-preview .dash-shell { width: 100%; min-height: 445px; }
 .product-preview .dash-chat { min-height: 310px; }
