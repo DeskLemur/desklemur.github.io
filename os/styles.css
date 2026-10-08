@@ -3348,3 +3348,17 @@ body.home-view.light-theme .lightbox-footer a { color: #944019; }
     column-gap: 18px;
   }
 }
+
+/* Keep the live System Graph visible in the overview, with a full-size example below. */
+.compact-overview .capability-live-demo { margin-top: 20px; border-radius: 6px; }
+.compact-overview .capability-live-viewport { min-height: 190px; }
+.capability-trace-placeholder { height: 100%; min-height: 190px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; padding: 20px; color: var(--text); font: .72rem/1.7 'Courier New', monospace; text-align: center; }
+.capability-trace-placeholder small { color: var(--muted); font: .72rem/1.6 Inter, ui-sans-serif, system-ui, sans-serif; }
+.capability-live-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0 8px; padding: 4px 10px; border-top: 1px solid var(--line); background: var(--panel); }
+.capability-live-actions .capability-live-link { flex: 1; min-height: 44px; border-top: 0; padding: 0 3px; font-size: .65rem; letter-spacing: .02em; background: transparent; }
+.capability-live-actions button { min-height: 44px; padding: 4px 8px; border: 1px solid var(--line-bright); border-radius: 4px; background: transparent; color: var(--text); font-size: .7rem; cursor: pointer; }
+.capability-live-actions button:hover { border-color: var(--orange); }
+.capability-live-actions button:focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+.capability-live-actions button[hidden] { display: none; }
+body.home-view.light-theme .capability-live-actions .capability-live-link { background: transparent; }
+body.home-view .capability-live-actions .capability-live-link:is(:hover, :focus-visible) { background: var(--panel); color: var(--orange-bright); text-decoration: underline; text-underline-offset: 3px; }

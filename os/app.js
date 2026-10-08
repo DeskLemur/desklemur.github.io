@@ -714,30 +714,103 @@
     animationButtons.forEach(button => button.addEventListener('click', () => toggleAnimation(!demoAnimationEnabled), { signal }));
     document.addEventListener('visibilitychange', () => { if (document.hidden) toggleAnimation(false); }, { signal });
     window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => { if (event.matches) toggleAnimation(false); }, { signal });
-    const host = app.querySelector('[data-trace-host]');
-    const closeButton = app.querySelector('[data-close-trace]');
-    if (!host) return;
-    const placeholder = host.innerHTML;
-    let frame = null, visible = true;
-    const syncPlayback = () => frame?.contentWindow?.postMessage({ type: 'desklemur-demo-control', paused: document.hidden || !visible }, location.protocol === 'file:' ? '*' : location.origin);
-    host.addEventListener('click', event => {
-      if (!event.target.closest('[data-load-trace]') || frame) return;
-      frame = document.createElement('iframe');
-      frame.title = 'System Graph example with simulated telemetry';
+    initializeTraceExamples(signal);
+  }
+
+  function initializeTraceExamples(signal) {
+    const states = [...app.querySelectorAll('[data-trace-host]')].map(host => {
+      const container = host.closest('[data-trace-demo]');
+      return {
+        host, placeholder: host.innerHTML, frame: null,
+        autoLoad: host.hasAttribute('data-trace-autoload'),
+        visible: !('IntersectionObserver' in window), userPaused: false,
+        closeButton: container?.querySelector('[data-close-trace]'),
+        pauseButton: container?.querySelector('[data-toggle-trace]'),
+      };
+    });
+    if (!states.length) return;
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const targetOrigin = location.protocol === 'file:' ? '*' : location.origin;
+    let pageDeparted = false;
+    const attachFrame = state => {
+      if (state.frame || signal.aborted) return;
+      const frame = document.createElement('iframe');
+      state.frame = frame;
+      frame.title = state.autoLoad
+        ? 'System Graph preview — simulated events and telemetry'
+        : 'System Graph example with simulated telemetry';
       frame.src = runtimeTraceUrl();
-      frame.addEventListener('load', syncPlayback, { signal });
-      host.replaceChildren(frame); closeButton.hidden = false;
-      closeButton.focus({ preventScroll: true });
+      frame.addEventListener('load', () => syncPlayback(state), { signal });
+      state.host.replaceChildren(frame);
+      if (state.closeButton) state.closeButton.hidden = false;
+    };
+    const syncPlayback = state => {
+      const unavailable = document.hidden || pageDeparted || !state.visible || signal.aborted;
+      if (state.autoLoad && !unavailable && !state.userPaused) attachFrame(state);
+      state.frame?.contentWindow?.postMessage({
+        type: 'desklemur-demo-control', paused: unavailable || state.userPaused,
+      }, targetOrigin);
+      if (state.pauseButton) {
+        // The embedded example handles reduced motion itself, including opt-in
+        // playback from its own control. Avoid a conflicting second play control.
+        state.pauseButton.hidden = motionPreference.matches;
+        state.pauseButton.textContent = state.userPaused ? 'Resume replay' : 'Pause replay';
+        state.pauseButton.setAttribute('aria-pressed', String(state.userPaused));
+      }
+    };
+    const syncAll = () => states.forEach(syncPlayback);
+    states.forEach(state => {
+      state.host.addEventListener('click', event => {
+        if (!event.target.closest('[data-load-trace]') || state.frame) return;
+        attachFrame(state); syncPlayback(state);
+        state.closeButton?.focus({ preventScroll: true });
+      }, { signal });
+      state.closeButton?.addEventListener('click', () => {
+        state.frame?.remove(); state.frame = null;
+        state.host.innerHTML = state.placeholder;
+        state.closeButton.hidden = true;
+        state.host.querySelector('button')?.focus({ preventScroll: true });
+      }, { signal });
+      state.pauseButton?.addEventListener('click', () => {
+        state.userPaused = !state.userPaused;
+        syncPlayback(state);
+      }, { signal });
+    });
+    window.addEventListener('message', event => {
+      if (event.data?.type !== 'desklemur-demo-ready') return;
+      const state = states.find(item => item.frame?.contentWindow === event.source);
+      if (state) syncPlayback(state);
     }, { signal });
-    closeButton.addEventListener('click', () => {
-      frame?.remove(); frame = null; host.innerHTML = placeholder; closeButton.hidden = true; host.querySelector('button').focus({ preventScroll: true });
+    document.addEventListener('visibilitychange', syncAll, { signal });
+    motionPreference.addEventListener('change', () => {
+      if (motionPreference.matches) {
+        // The embedded replay pauses for reduced motion and offers its own
+        // explicit opt-in. Release the outer gate before hiding its control,
+        // otherwise an earlier outer Pause would make that opt-in unusable.
+        states.forEach(state => { if (state.pauseButton) state.userPaused = false; });
+      }
+      syncAll();
     }, { signal });
-    window.addEventListener('message', event => { if (event.source === frame?.contentWindow && event.data?.type === 'desklemur-demo-ready') syncPlayback(); }, { signal });
-    document.addEventListener('visibilitychange', syncPlayback, { signal });
+    window.addEventListener('pagehide', () => { pageDeparted = true; syncAll(); }, { signal });
+    window.addEventListener('pageshow', () => { pageDeparted = false; syncAll(); }, { signal });
+    let observer = null;
     if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; syncPlayback(); });
-      observer.observe(host); signal.addEventListener('abort', () => observer.disconnect(), { once: true });
+      observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+          const state = states.find(item => item.host === entry.target);
+          if (state) { state.visible = entry.isIntersecting; syncPlayback(state); }
+        });
+      });
+      states.forEach(state => observer.observe(state.host));
     }
+    signal.addEventListener('abort', () => {
+      observer?.disconnect();
+      states.forEach(state => {
+        syncPlayback(state);
+        state.frame?.remove(); state.frame = null;
+      });
+    }, { once: true });
+    syncAll();
   }
 
   function headerTemplate() {
@@ -1118,7 +1191,16 @@
             <h3>${title}</h3>
             <p>${body}</p>
             ${liveDemo && featureEnabled("system_graph")
-              ? '<a class="capability-preview-link" href="#/#observability"><span aria-hidden="true">↗</span> Explore the System Graph example</a>'
+              ? `<div class="capability-shot capability-live-demo" data-trace-demo>
+                  <div class="capability-live-bar"><span>SYSTEM GRAPH</span><span>SIMULATED DATA</span></div>
+                  <div class="capability-live-viewport" data-trace-host data-trace-autoload>
+                    <div class="capability-trace-placeholder"><span>Request → Plan → Tools → Result</span><small>Interactive example loads when visible.</small></div>
+                  </div>
+                  <div class="capability-live-actions">
+                    <a class="capability-live-link" href="#/#observability">Explore full example <span aria-hidden="true">↗</span></a>
+                    <button type="button" data-toggle-trace aria-pressed="false">Pause replay</button>
+                  </div>
+                </div>`
               : ""}
           </article>
         `,
@@ -1294,7 +1376,7 @@
               </ul>
             </div>
 
-            <div class="graph-card graph-card-live">
+            <div class="graph-card graph-card-live" data-trace-demo>
               <div class="graph-card-header"><span>SYSTEM GRAPH</span><span class="live-demo-pill">ILLUSTRATIVE REPLAY</span></div>
               <div class="live-embed" data-trace-host>
                 <div class="trace-placeholder">
