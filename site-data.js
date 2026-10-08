@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "9aeabd8145d9ed38",
+    "version": "d31f263effc698e2",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -56,7 +56,7 @@ window.DESKLEMUR_SITE = {
       "news/news.js": "f3f317bd07592cf0",
       "news-data.js": "0c614f223b539d92",
       "og.png": "7cde432b7eea1eac",
-      "os/app.js": "8757ce70f681c219",
+      "os/app.js": "a2bb7ecc2c1c7be3",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
@@ -97,6 +97,9 @@ window.DESKLEMUR_SITE = {
       "os/assets/light/DIRECTION/web/The local moment.webp": "3621592c6e26fb30",
       "os/assets/light/ENGINEERED FOR SPEED.png": "d9f711ae0f7c9e47",
       "os/assets/light/web/ENGINEERED FOR SPEED.webp": "c3f8c9115f47ceb7",
+      "os/assets/product/agent-memories.png": "904e77c520b25a89",
+      "os/assets/product/file-review-html.png": "e135439c023f67b2",
+      "os/assets/product/mcp-saved-tools.png": "0e3815634da59fab",
       "os/assets/vision/capability-control.png": "e5cd70f2a9aec692",
       "os/assets/vision/capable-model-system.png": "02f471e81beac849",
       "os/assets/vision/discovery-to-engineering.png": "22a8ddbc77d4e139",
@@ -129,7 +132,7 @@ window.DESKLEMUR_SITE = {
       "os/live/system_graph.css": "dae953fcf587184b",
       "os/live/system_graph.js": "cda07ae27310c292",
       "os/live/tauri_bridge.js": "8615ea348012412b",
-      "os/styles.css": "e767dd756e3f9a5d"
+      "os/styles.css": "be4d83cf494e793e"
     }
   }
 };

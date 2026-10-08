@@ -161,10 +161,6 @@
     },
   ];
 
-  const engineBadges = [
-    "MLX", "llama.cpp", "LM Studio", "Ollama", "vLLM",
-  ];
-
   // Genuinely forward-looking direction.
   const visionPoints = [
     [
@@ -556,9 +552,9 @@
 
   function productJumpTemplate() {
     const entries = [
-      ['workflows', 'Workflows'], ['runtime', 'Runtime', 'runtime'],
-      ['capabilities', 'Models & tools'], ['memory', 'Memory'],
-      ['security', 'Permissions', 'security'], ['editions', 'Editions'], ['faq', 'Questions'],
+      ['workflows', 'Workflows'], ['capabilities', 'Overview'], ['editions', 'Editions'],
+      ['workspace-features', 'Features'], ['runtime', 'Runtime', 'runtime'],
+      ['security', 'Permissions', 'security'], ['faq', 'Questions'],
     ].filter(([, , feature]) => !feature || featureEnabled(feature));
     return `<nav class="product-jump" aria-label="Explore this product"><div class="container">${entries.map(([id, label]) => `<a href="#/#${id}">${label}</a>`).join('')}</div></nav>`;
   }
@@ -585,7 +581,47 @@
       ${workflowExamples.map((item, i) => `<div class="workflow-panel" role="tabpanel" tabindex="0" id="workflow-${item.id}" aria-labelledby="workflow-tab-${item.id}"${i ? ' hidden' : ''}>
         <div class="workflow-request"><span>EXAMPLE REQUEST</span><p>“${item.prompt}”</p><small>${item.result}</small></div>
         <div class="workflow-steps"><h3>${item.title}</h3><ol>${item.steps.map(step => `<li>${step}</li>`).join('')}</ol>${!item.feature || featureEnabled(item.feature) ? `<a href="#/#${item.target}">${item.link} <span aria-hidden="true">→</span></a>` : ''}</div>
+        ${productScreenTemplate(item.id)}
       </div>`).join('')}
+    </div></section>`;
+  }
+
+  const productScreens = {
+    files: { file: 'file-review-html.png', width: 1280, height: 796, alt: 'File Review showing a saved project brief with current focus and next steps.', caption: 'Review the saved file in the app before sharing it.' },
+    connected: { file: 'mcp-saved-tools.png', width: 1236, height: 731, alt: 'Tool Builder showing selected tools from a sample MCP notes server.', caption: 'Choose which connected tools the agent can use.' },
+    continuity: { file: 'agent-memories.png', width: 1020, height: 828, alt: 'Agent Memory showing editable example preferences for SPECTRA.', caption: 'Review and adjust the selected agent’s profile memories.' },
+  };
+
+  function productScreenTemplate(key) {
+    const screen = productScreens[key];
+    if (!screen) return '';
+    return `<figure class="product-screen">
+      <div class="product-screen-label">APP INTERFACE <span>Example data</span></div>
+      <img src="${cacheUrl(`./assets/product/${screen.file}`)}" width="${screen.width}" height="${screen.height}" alt="${escapeHtml(screen.alt)}" loading="lazy" decoding="async" />
+      <figcaption>${escapeHtml(screen.caption)} <span>Tap or click to enlarge.</span></figcaption>
+    </figure>`;
+  }
+
+  function featureLibraryTemplate() {
+    const features = [
+      { id: 'tools', index: '01', title: 'Tools that fit the task.', summary: 'Built-in tools, custom recipes, and MCP connections.',
+        body: 'Give agents the tools they need and keep their activity visible in the same workspace.',
+        points: ['Author custom tools with their own inputs and permissions.', 'Save dependent steps as recipes and run independent calls in batches.', 'Connect supported stdio or HTTP MCP servers, then select their tools.'], screen: 'connected' },
+      { id: 'agents', index: '02', title: 'One workspace. Different roles.', summary: 'Named agents for individual, collaborative, and debate workflows.',
+        body: 'Keep agent roles and work organized under a master profile. Standard and Pro agents share the workspace model.',
+        points: ['Choose an agent for the task and configure its role.', 'Use individual, collaboration, or debate modes as your edition allows.', 'Individual model connections are limited to Ultimate and Developer, which are not publicly available.'] },
+      { id: 'memory', index: '03', title: 'Context you can review.', summary: 'Continue work with memory you can inspect and adjust.',
+        body: 'Give the next task useful context while keeping control over what an agent remembers about you.',
+        points: ['Select an agent to review its profile memories.', 'Edit, lock, or forget a selected memory; chat history stays unchanged.', 'Warm memory, recall, and saved knowledge support continuity across tasks.'], screen: 'continuity' },
+    ].filter(item => item.id !== 'tools' || featureEnabled('tools'));
+    return `<section class="section feature-library" id="workspace-features"><div class="container">
+      <div class="section-heading"><div><div class="section-kicker">MAKE IT YOUR WORKSPACE</div><h2>Explore what matters to you.</h2></div><p>Open a feature to see its controls and interface. Actions and limits depend on your edition and configuration.</p></div>
+      <div class="feature-library-list">${features.map(item => `<details class="feature-disclosure" id="${item.id}">
+        <summary><span class="feature-index">${item.index}</span><span class="feature-title">${item.title}<small>${item.summary}</small></span><span class="feature-toggle" aria-hidden="true">+</span></summary>
+        <div class="feature-content"><div class="feature-copy"><h3>${item.title}</h3><p>${item.body}</p><ul>${item.points.map(point => `<li>${point}</li>`).join('')}</ul></div>
+          ${item.screen ? productScreenTemplate(item.screen) : `<div class="agent-modes" aria-label="Agent work modes"><article><span>01</span><h4>Individual</h4><p>One agent follows the task.</p></article><article><span>02</span><h4>Collaboration</h4><p>Agents contribute to shared work.</p></article><article><span>03</span><h4>Debate</h4><p>Agents explore different perspectives.</p></article></div>`}
+        </div>
+      </details>`).join('')}</div>
     </div></section>`;
   }
 
@@ -593,11 +629,24 @@
     const guide = window.DESKLEMUR_EDITION_GUIDE;
     if (!guide || !Array.isArray(guide.editions) || !Array.isArray(guide.rows)) return '';
     const editions = guide.editions;
+    const primaryEditions = editions.filter(edition => ['standard', 'pro'].includes(edition.id));
+    const referenceEditions = editions.filter(edition => !['standard', 'pro'].includes(edition.id));
+    const cardRows = ['model_engine', 'agent_routes', 'context_efficiency', 'execution_state']
+      .map(id => guide.rows.find(row => row.id === id)).filter(Boolean);
     return `<section class="section editions-section" id="editions" aria-labelledby="editions-title"><div class="container">
-      <div class="section-heading"><div><div class="section-kicker">EDITION OVERVIEW</div><h2 id="editions-title">Compare the editions.</h2></div><p>Standard and Pro focus on bundled local inference. Ultimate and Developer are not publicly available; their features are shown for reference.</p></div>
-      <div class="edition-cards">${editions.map(edition => `<article class="edition-card" data-edition="${escapeHtml(edition.id)}"><span class="edition-card-label">${edition.availability === 'closed' ? 'NOT PUBLICLY AVAILABLE' : 'DESKLEMUROS'}</span><h3>${escapeHtml(edition.name)}</h3><p>${escapeHtml(edition.summary)}</p></article>`).join('')}</div>
-      <p class="edition-engine-note"><strong>Standard and Pro use bundled in-app llama.cpp only.</strong> Existing model servers, other engines, and web-provider routes are limited to the closed Ultimate and Developer editions. Connected tools and the optional app chat API are separate from model inference.</p>
-      <details class="edition-comparison"><summary>Compare features across editions <span>Model connections, task state, and research tools</span></summary>
+      <div class="section-heading"><div><div class="section-kicker">EDITION OVERVIEW</div><h2 id="editions-title">Compare Standard and Pro.</h2></div><p>A shared foundation for local work. Choose the features that fit the way you use your workspace.</p></div>
+      <div class="edition-cards edition-primary-cards">${primaryEditions.map(edition => `<article class="edition-card edition-primary-card" data-edition="${escapeHtml(edition.id)}" aria-labelledby="edition-${escapeHtml(edition.id)}-title">
+        <div class="edition-card-heading"><span class="edition-card-label">BUNDLED LOCAL INFERENCE</span>${edition.id === 'pro' ? '<span class="edition-card-badge">WITH DPMS</span>' : ''}</div>
+        <h3 id="edition-${escapeHtml(edition.id)}-title">${escapeHtml(edition.name)}</h3><p class="edition-card-summary">${escapeHtml(edition.summary)}</p>
+        <dl class="edition-card-features">${cardRows.map(row => `<div${row.id === 'execution_state' ? ' class="edition-dpms-row"' : ''}><dt>${escapeHtml(row.label)}</dt><dd>${escapeHtml(String(row.values?.[edition.id] ?? '—'))}</dd></div>`).join('')}</dl>
+      </article>`).join('')}</div>
+      <p class="edition-engine-note"><strong>Standard and Pro use bundled in-app llama.cpp only.</strong> Connected tools and the optional app chat API are separate from model inference.</p>
+      ${referenceEditions.length ? `<details class="edition-reference" id="edition-reference"><summary><span class="edition-reference-title">Ultimate &amp; Developer</span><span class="edition-reference-status">Not publicly available · Feature reference</span></summary>
+        <div class="edition-reference-content"><p>Existing model servers, other engines, and web-provider routes are limited to these closed editions. Their features are shown for reference.</p>
+          <div class="edition-reference-cards">${referenceEditions.map(edition => `<article class="edition-card edition-reference-card" data-edition="${escapeHtml(edition.id)}"><span class="edition-card-label">NOT PUBLICLY AVAILABLE</span><h3>${escapeHtml(edition.name)}</h3><p>${escapeHtml(edition.summary)}</p></article>`).join('')}</div>
+        </div>
+      </details>` : ''}
+      <details class="edition-comparison" id="edition-comparison"><summary>See the full feature comparison <span>All editions · Model connections, task state, and research tools</span></summary>
         <p class="edition-table-hint" id="edition-table-hint">On smaller screens, scroll the comparison horizontally to see every edition.</p>
         <div class="edition-table-scroll" tabindex="0" role="region" aria-label="Edition feature comparison" aria-describedby="edition-table-hint"><table class="edition-table"><caption>Features by edition · Ultimate and Developer are not publicly available</caption><thead><tr><th scope="col">Feature</th>${editions.map(edition=>`<th scope="col">${escapeHtml(edition.name)}${edition.availability === 'closed' ? '<span class="edition-availability">Not publicly available</span>' : ''}</th>`).join('')}</tr></thead><tbody>${guide.rows.map(row=>`<tr><th scope="row">${escapeHtml(row.label)}${row.description ? `<span>${escapeHtml(row.description)}</span>` : ''}</th>${editions.map(edition=>`<td>${escapeHtml(String(row.values?.[edition.id] ?? '—'))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
         <div class="edition-notes">${(guide.notes || []).map(note=>`<article><h3>${escapeHtml(note.title)}</h3><p>${escapeHtml(note.body || note.text || '')}</p></article>`).join('')}</div>
@@ -633,6 +682,13 @@
 
   function initializeProductInteractions() {
     const { signal } = marketingController;
+    app.addEventListener('click', event => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = event.target.closest('a[href^="#/#"]');
+      if (link && link.hash === window.location.hash) {
+        event.preventDefault(); route();
+      }
+    }, { signal });
     showStaticExamples();
     const tabs = [...app.querySelectorAll('.workflow-tabs [role="tab"]')];
     const selectTab = (tab, focus = false) => {
@@ -1056,24 +1112,17 @@
 
     const capabilityCards = capabilities
       .map(
-        ({ index, title, body, image, liveDemo }) => `
+        ({ index, title, body, liveDemo }) => `
           <article class="capability-card">
             <span class="card-index">${index}</span>
             <h3>${title}</h3>
             <p>${body}</p>
-            ${image
-              ? `<span class="capability-shot"><img src="${cacheUrl(`${CAPABILITY_ASSET_DIR}/${encodeURIComponent(image)}`)}" alt="${escapeHtml(title)} screenshot" loading="lazy" /></span>`
-              : ""}
             ${liveDemo && featureEnabled("system_graph")
               ? '<a class="capability-preview-link" href="#/#observability"><span aria-hidden="true">↗</span> Explore the System Graph example</a>'
               : ""}
           </article>
         `,
       )
-      .join("");
-
-    const engineStrip = engineBadges
-      .map((name) => `<span class="engine-badge">${name}</span>`)
       .join("");
 
     const visionRow = ([index, title, body, image]) => `
@@ -1115,7 +1164,7 @@
     app.innerHTML = `
       ${headerTemplate()}
 
-      <main id="main-content" tabindex="-1">
+      <main id="main-content" class="product-home" tabindex="-1">
         <section class="hero" id="overview">
           <div class="container hero-grid">
             <div class="hero-copy">
@@ -1127,31 +1176,59 @@
               </h1>
 
               <p class="hero-lead">
-                A desktop workspace for local AI agents. Give a model tools
-                and a task, then follow the work from plan to result.
+                A desktop workspace for local AI agents. Give models tools
+                and follow each task from plan to result.
               </p>
 
               <div class="hero-actions">
                 <a class="button button-primary" href="#/#workflows">Explore a workflow <span aria-hidden="true">↓</span></a>
-                <a class="button button-secondary" href="${escapeHtml(githubUrl())}" target="_blank" rel="noopener noreferrer">Project on GitHub ↗</a>
-                ${featureEnabled("documentation") ? '<a class="button button-secondary" href="#/docs">Read the Documentation</a>' : ""}
+                <a class="hero-project-link" href="${escapeHtml(githubUrl())}" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
               </div>
-
-              <aside class="hero-setup" aria-labelledby="hero-setup-title">
-                <h2 id="hero-setup-title">Before you begin</h2>
-                <p><strong>Standard and Pro use bundled in-app llama.cpp only.</strong> <a href="#/#editions">Compare editions <span aria-hidden="true">→</span></a></p>
-                <p>Ultimate and Developer are not publicly available.</p>
-              </aside>
             </div>
 
             <div class="product-preview">
               ${dashboardPanelTemplate()}
               <div class="demo-caption"><span>Illustrative workflow · sample data</span><button type="button" data-demo-animation aria-pressed="false">Play example</button></div>
             </div>
+
+            <aside class="hero-setup" aria-labelledby="hero-setup-title">
+              <h2 id="hero-setup-title">Before you begin</h2>
+              <p><strong>Standard and Pro use bundled in-app llama.cpp only.</strong></p>
+              <p>Ultimate and Developer are not publicly available.</p>
+              <div class="hero-resource-links">
+                <a href="#/#editions">Compare editions <span aria-hidden="true">→</span></a>
+                ${featureEnabled("documentation") ? '<a href="#/docs">Read the documentation <span aria-hidden="true">→</span></a>' : ""}
+              </div>
+            </aside>
           </div>
         </section>
         ${productJumpTemplate()}
         ${workflowTemplate()}
+
+        <section class="section capabilities-section" id="capabilities">
+          <div class="container">
+            <div class="section-heading">
+              <div>
+                <div class="section-kicker">ONE CONTROL SURFACE</div>
+                <h2>Six parts. One workspace.</h2>
+              </div>
+
+              <p>
+                Configure the execution environment without hiding the machinery
+                that makes an autonomous workflow run.
+              </p>
+            </div>
+
+            <div class="capability-grid compact-overview">
+              ${capabilityCards}
+            </div>
+
+
+          </div>
+        </section>
+
+        ${editionsTemplate()}
+        ${featureLibraryTemplate()}
 
         <section class="manifesto section" id="runtime">
           <div class="container manifesto-grid manifesto-grid-live">
@@ -1182,89 +1259,20 @@
           </div>
         </section>
 
-        <section class="section capabilities-section" id="capabilities">
-          <div class="container">
-            <div class="section-heading">
-              <div>
-                <div class="section-kicker">ONE CONTROL SURFACE</div>
-                <h2>Six parts. One workspace.</h2>
-              </div>
-
-              <p>
-                Configure the execution environment without hiding the machinery
-                that makes an autonomous workflow run.
-              </p>
-            </div>
-
-            <div class="capability-grid">
-              ${capabilityCards}
-            </div>
-
-            <div class="engine-strip" aria-label="Model engines for the closed Ultimate and Developer editions">
-              <span class="engine-strip-label">ULTIMATE / DEVELOPER</span>
-              ${engineStrip}
-              <span class="engine-strip-note">Standard and Pro use bundled in-app llama.cpp only. The model-server options shown here are limited to Ultimate and Developer, which are <b>not publicly available</b>. Web API integrations in those editions are experimental.</span>
-            </div>
-          </div>
-        </section>
-
-        <section class="section tools-section" id="tools">
-          <div class="container speed-layout">
-            <div>
-              <div class="section-kicker">EXTENSIBLE BY DESIGN</div>
-              <h2>Give your agent tools that don’t exist yet.</h2>
-
-              <p class="section-description">
-                The runtime ships with a full toolset — but its real strength is
-                that you build your own. Author custom tools, chain them into
-                reusable recipes, and connect anything through MCP, so an agent’s
-                reach is never a fixed list. It grows to whatever your work needs.
-                <strong>Built-in, custom, and real MCP tools all run under one
-                planner, one permission model, one pipeline.</strong>
-              </p>
-            </div>
-
-            <ul class="speed-list">
-              <li><strong>Tool Builder</strong> — author custom tools with your own parameters, logic, and permission level.</li>
-              <li><strong>Tool Recipes</strong> — save multi-step tool workflows and invoke a whole pipeline as one action.</li>
-              <li><strong>MCP connectors</strong> — connect supported stdio and HTTP Model Context Protocol servers and review their tools.</li>
-              <li><strong>Installable bot services</strong> — extend delivery and integrations as drop-in packages.</li>
-            </ul>
-          </div>
-
-          <div class="container">
-            <figure class="section-art">
-              <img src="${directionArtPath("Built to be extended.png")}" alt="Built to be extended — custom tools, tool recipes, and MCP connectors" loading="lazy" />
-            </figure>
-          </div>
-        </section>
-
-        <section class="section speed-section">
-          <div class="container speed-layout">
-            <div>
-              <div class="section-kicker">ENGINEERED FOR SPEED</div>
-              <h2>An agent loop optimized end to end.</h2>
-
-              <p class="section-description">
-                The step loop reuses stable prompt prefixes and runtime state where
-                supported, reducing repeated preparation during long agent runs.
-              </p>
-            </div>
-
+        <section class="section speed-section"><div class="container">
+          <div class="section-heading"><div><div class="section-kicker">ENGINEERED FOR SPEED</div><h2>Less repeated work.</h2></div><p>Stable context and reusable runtime state reduce repeated preparation. DPMS reduces token usage to speed up processing in editions that include it.</p></div>
+          <details class="support-detail" id="runtime-optimizations"><summary>Explore runtime optimizations</summary><div class="support-detail-body">
             <ul class="speed-list">
               <li><strong>Step-context KV cache</strong> — stable prompt prefixes support cache reuse when the model server accepts them.</li>
               <li><strong>Fast runtime cache</strong> — reuse valid prompt, tool, and profile state; relevant configuration changes invalidate it.</li>
               <li><strong>Parallel tool batches</strong> — independent tool calls execute concurrently inside a single step.</li>
               <li><strong>Streaming everything</strong> — plans, reasoning, tool output, and files render as they are produced.</li>
             </ul>
-          </div>
-
-          <div class="container">
             <figure class="section-art">
               <img src="${rootArtPath("ENGINEERED FOR SPEED.png")}" alt="Engineered for speed — agent loop optimizations" loading="lazy" />
             </figure>
-          </div>
-        </section>
+          </div></details>
+        </div></section>
 
         <section class="section trace-section" id="observability">
           <div class="container trace-layout">
@@ -1319,6 +1327,7 @@
           </div>
 
           <div class="container">
+            <details class="support-detail" id="permission-details"><summary>See permission boundaries in detail</summary><div class="support-detail-body">
             <figure class="security-map" aria-labelledby="security-map-title">
               <figcaption class="security-map-heading">
                 <div>
@@ -1384,58 +1393,7 @@
                 <span>EXPLICIT LEVEL SELECTION REQUIRED</span>
               </div>
             </figure>
-          </div>
-        </section>
-
-        <section class="section feature-chapter" id="agents">
-          <div class="container trace-layout">
-            <div class="trace-copy">
-              <div class="section-kicker">MULTI-AGENT RUNTIME · ALREADY SHIPPING</div>
-              <h2>Many agents, one runtime.</h2>
-
-              <p>
-                One model can drive multiple agents in individual, collaboration,
-                and debate modes. Individual model connections are limited to
-                Ultimate and Developer, which are not publicly available.
-              </p>
-
-              <ul class="feature-list">
-                <li>Individual, collaboration, and debate orchestration modes</li>
-                <li>Shared workspace model for Standard and Pro agents</li>
-                <li>Master profiles — each with its own agents, settings, and sandbox</li>
-                <li>Master-scoped policy settings with visible runtime checks</li>
-              </ul>
-            </div>
-
-            <figure class="section-art">
-              <img src="${directionArtPath("Many agents, one runtime.png")}" alt="Many agents, one runtime illustration" loading="lazy" />
-            </figure>
-          </div>
-        </section>
-
-        <section class="section feature-chapter" id="memory">
-          <div class="container trace-layout">
-            <figure class="section-art">
-              <img src="${directionArtPath("Memory that actually remembers.png")}" alt="Memory that actually remembers illustration" loading="lazy" />
-            </figure>
-
-            <div class="trace-copy">
-              <div class="section-kicker">LAYERED MEMORY · ALREADY SHIPPING</div>
-              <h2>Memory that actually remembers.</h2>
-
-              <p>
-                RAG recall, STM, LTM, active LEARNing, and the memory SHELF form
-                a layered memory system, so agents carry knowledge across turns,
-                sessions, and projects.
-              </p>
-
-              <ul class="feature-list">
-                <li>Warm memory → STM → LTM → knowledge graph</li>
-                <li>Recall profiles for boot, passive, and active retrieval</li>
-                <li>Active memory the agent saves on purpose (add_memory / memory_shelf)</li>
-                <li>Warm-memory commits preserve conversation context under your chosen policy</li>
-              </ul>
-            </div>
+            </div></details>
           </div>
         </section>
 
@@ -1525,7 +1483,6 @@
           </div>
         </section>
 
-        ${editionsTemplate()}
         ${faqTemplate()}
         <section class="final-cta">
           <div class="container">
@@ -1808,7 +1765,12 @@
       productTheme = isLightTheme() ? 'dark' : 'light';
       try { window.localStorage.setItem('desklemur-theme', productTheme); } catch {}
       const scrollY = window.scrollY;
+      const openDetails = [...app.querySelectorAll('details[id][open]')].map(detail => detail.id);
       route(true);
+      openDetails.forEach(id => {
+        const detail = document.getElementById(id);
+        if (detail?.tagName === 'DETAILS') detail.open = true;
+      });
       requestAnimationFrame(() => {
         window.scrollTo({ top: scrollY, behavior: 'instant' });
         app.querySelector(mobile.matches ? '.menu-button' : '.theme-toggle')?.focus({ preventScroll: true });
@@ -2148,7 +2110,7 @@
   let closeLightbox = () => {};
 
   function prepareZoomImages() {
-    app.querySelectorAll(".capability-shot img, .vision-shot img, .section-art img").forEach((image) => {
+    app.querySelectorAll(".capability-shot img, .vision-shot img, .section-art img, .product-screen img").forEach((image) => {
       if (image.closest("a, button")) return;
       image.tabIndex = 0;
       image.setAttribute("role", "button");
@@ -2187,7 +2149,10 @@
     }
     requestAnimationFrame(() => {
       const target = section && document.getElementById(section);
-      if (target && target.closest('main')) target.scrollIntoView({ behavior: 'instant', block: 'start' });
+      if (target && target.closest('main')) {
+        if (force !== true && target.matches('.feature-disclosure')) target.open = true;
+        target.scrollIntoView({ behavior: 'instant', block: 'start' });
+      }
       else window.scrollTo({ top: 0, behavior: 'instant' });
       if (focusMarketingDestination) {
         const destination = (target && target.closest('main') && target) || app.querySelector('main h1, main');
@@ -2233,7 +2198,7 @@
     };
     document.addEventListener("click", (event) => {
       const button = event.target.closest?.(".docs-image-button");
-      const source = button?.querySelector("img") || event.target.closest?.(".capability-shot img, .vision-shot img, .section-art img");
+      const source = button?.querySelector("img") || event.target.closest?.(".capability-shot img, .vision-shot img, .section-art img, .product-screen img");
       if (source) { event.preventDefault(); openLightbox(source); }
     });
     document.addEventListener("keydown", (event) => {
