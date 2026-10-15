@@ -194,7 +194,7 @@
       "03",
       "WILD",
       "Your complete home workspace",
-      "Access is rooted at ~/: Documents, Desktop, and Library are available, while paths outside your home remain blocked.",
+      "Access is limited to your home directory (~/): Documents, Desktop, and Library are available, while paths outside your home remain blocked.",
     ],
     [
       "04",
@@ -613,13 +613,19 @@
       { id: 'memory', index: '03', title: 'Context you can review.', summary: 'Continue work with memory you can inspect and adjust.',
         body: 'Give the next task useful context while keeping control over what an agent remembers about you.',
         points: ['Select an agent to review its profile memories.', 'Edit, lock, or forget a selected memory; chat history stays unchanged.', 'Warm memory, recall, and saved knowledge support continuity across tasks.'], screen: 'continuity' },
+      { id: 'guardrails', index: '04', title: 'Guardrails that support judgment.', summary: 'Static validation and adaptive prompting, with model-led planning.',
+        body: 'Developed and tested with Gemma 4 26B A4B, DeskLemurOS combines static prompt rules and validation with context-aware guidance and model-assisted review to help smaller local models produce reliable responses and tool calls. These controls are designed to preserve the LLM’s role in deciding how to approach the task, choose tools, and adapt its plan within the permissions you set.',
+        points: ['Static checks validate output structure and tool arguments, helping catch recoverable formatting errors.', 'Adaptive prompts use the current task and feedback to guide correction; model-assisted checks can assess response alignment and evidence.', 'The model proposes the next step. Runtime checks can request correction or verification, or stop an action outside the configured boundaries.', 'These controls support reliability; they do not guarantee factual correctness or task success.'],
+        cardLabel: 'How guardrails support model judgment',
+        cards: [['Static validation', 'Check the form and validity of an output.'], ['Adaptive guidance', 'Help the model revise an output using task context and feedback.'], ['Model-led judgment', 'Keep planning, tool choice, and adaptation with the LLM, within configured boundaries.']] },
     ].filter(item => item.id !== 'tools' || featureEnabled('tools'));
+    const agentCards = [['Individual', 'One agent follows the task.'], ['Collaboration', 'Agents contribute to shared work.'], ['Debate', 'Agents explore different perspectives.']];
     return `<section class="section feature-library" id="workspace-features"><div class="container">
       <div class="section-heading"><div><div class="section-kicker">MAKE IT YOUR WORKSPACE</div><h2>Explore what matters to you.</h2></div><p>Open a feature to see its controls and interface. Actions and limits depend on your edition and configuration.</p></div>
       <div class="feature-library-list">${features.map(item => `<details class="feature-disclosure" id="${item.id}">
         <summary><span class="feature-index">${item.index}</span><span class="feature-title">${item.title}<small>${item.summary}</small></span><span class="feature-toggle" aria-hidden="true">+</span></summary>
         <div class="feature-content"><div class="feature-copy"><h3>${item.title}</h3><p>${item.body}</p><ul>${item.points.map(point => `<li>${point}</li>`).join('')}</ul></div>
-          ${item.screen ? productScreenTemplate(item.screen) : `<div class="agent-modes" aria-label="Agent work modes"><article><span>01</span><h4>Individual</h4><p>One agent follows the task.</p></article><article><span>02</span><h4>Collaboration</h4><p>Agents contribute to shared work.</p></article><article><span>03</span><h4>Debate</h4><p>Agents explore different perspectives.</p></article></div>`}
+          ${item.screen ? productScreenTemplate(item.screen) : `<div class="agent-modes" aria-label="${escapeHtml(item.cardLabel || 'Agent work modes')}">${(item.cards || agentCards).map(([title, description], i) => `<article><span>${String(i + 1).padStart(2, '0')}</span><h4>${escapeHtml(title)}</h4><p>${escapeHtml(description)}</p></article>`).join('')}</div>`}
         </div>
       </details>`).join('')}</div>
     </div></section>`;
@@ -1650,7 +1656,7 @@
                     <em>HOME</em>
                   </div>
                   <p>For work that spans your personal workspace.</p>
-                  <div class="security-path"><b>ROOT</b><code>~/</code><span>Documents · Desktop · Library</span></div>
+                  <div class="security-path"><b>HOME</b><code>~/</code><span>Documents · Desktop · Library</span></div>
                   <div class="security-rule"><b>PATH</b><span>Anything outside your home directory remains blocked.</span></div>
                   <div class="security-rule"><b>SHELL</b><span>Shell interpretation is enabled: pipes, redirects, and compound commands work.</span></div>
                 </article>
