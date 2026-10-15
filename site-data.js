@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "ec03b2fa88370f91",
+    "version": "a7486e4ac5f66479",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -57,7 +57,7 @@ window.DESKLEMUR_SITE = {
       "news/news.js": "f3f317bd07592cf0",
       "news-data.js": "0c614f223b539d92",
       "og.png": "7cde432b7eea1eac",
-      "os/app.js": "3bfee86ecf3fb4fa",
+      "os/app.js": "2f7d609066167df2",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
@@ -133,7 +133,7 @@ window.DESKLEMUR_SITE = {
       "os/live/system_graph.css": "dae953fcf587184b",
       "os/live/system_graph.js": "cda07ae27310c292",
       "os/live/tauri_bridge.js": "8615ea348012412b",
-      "os/styles.css": "00b20e5d3731f4fa"
+      "os/styles.css": "5eac37b794e2c2bc"
     }
   }
 };

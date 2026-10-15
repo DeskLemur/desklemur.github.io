@@ -714,7 +714,84 @@
     animationButtons.forEach(button => button.addEventListener('click', () => toggleAnimation(!demoAnimationEnabled), { signal }));
     document.addEventListener('visibilitychange', () => { if (document.hidden) toggleAnimation(false); }, { signal });
     window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => { if (event.matches) toggleAnimation(false); }, { signal });
+    initializeDpmsCharts(signal);
     initializeTraceExamples(signal);
+  }
+
+  function initializeDpmsCharts(signal) {
+    if (!Element.prototype.animate || signal.aborted) return;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const states = [...app.querySelectorAll('[data-dpms-chart], [data-dpms-counter]')].map(chart => ({
+      chart, bars: [...chart.querySelectorAll('[data-dpms-bar]')],
+      counter: chart.querySelector('[data-dpms-count]'),
+      finalText: chart.querySelector('[data-dpms-count]')?.textContent,
+      frame: null,
+      details: chart.closest('details'), played: false, animations: [],
+    }));
+    const settle = state => {
+      state.animations.forEach(animation => animation.cancel());
+      state.animations = [];
+      cancelAnimationFrame(state.frame);
+      state.frame = null;
+      if (state.counter) state.counter.textContent = state.finalText;
+    };
+    const play = state => {
+      settle(state);
+      if (signal.aborted || motion.matches || document.hidden || (state.details && !state.details.open)) return;
+      state.played = true;
+      // Reveal the finished bar geometry without distorting block labels.
+      state.animations = state.bars.map((bar, index) => {
+        const animation = bar.animate([
+          { clipPath: 'inset(0 100% 0 0)' },
+          { clipPath: 'inset(0 0% 0 0)' },
+        ], { duration: 1050, delay: index * 140, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'backwards' });
+        animation.onfinish = () => {
+          animation.cancel();
+          state.animations = state.animations.filter(item => item !== animation);
+        };
+        return animation;
+      });
+      if (state.counter) {
+        const start = performance.now();
+        const finalValue = Number(state.finalText);
+        state.counter.textContent = '0.0';
+        const tick = now => {
+          const progress = Math.min(1, (now - start) / 1200);
+          state.counter.textContent = progress < 1
+            ? (finalValue * (1 - Math.pow(1 - progress, 3))).toFixed(1)
+            : state.finalText;
+          state.frame = progress < 1 ? requestAnimationFrame(tick) : null;
+        };
+        state.frame = requestAnimationFrame(tick);
+      }
+    };
+    const observer = 'IntersectionObserver' in window ? new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const state = states.find(item => item.chart === entry.target);
+        if (state && entry.isIntersecting && entry.intersectionRatio >= .15 && !state.played) play(state);
+      });
+    }, { threshold: .15 }) : null;
+    states.forEach(state => {
+      state.details?.addEventListener('toggle', () => {
+        if (!state.details.open) {
+          settle(state);
+          state.played = false;
+        } else if (observer) {
+          // Observe again so reopening an already visible detail also gets an entry event.
+          observer.unobserve(state.chart);
+          observer.observe(state.chart);
+        }
+      }, { signal });
+      observer?.observe(state.chart);
+    });
+    motion.addEventListener('change', () => states.forEach(settle), { signal });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) states.forEach(settle);
+    }, { signal });
+    signal.addEventListener('abort', () => {
+      observer?.disconnect();
+      states.forEach(settle);
+    }, { once: true });
   }
 
   function initializeTraceExamples(signal) {
@@ -1229,16 +1306,16 @@
     const stacks = ['DPMS off', 'DPMS on'].map((label, side) => `
       <div class="dpms-stack-row">
         <div class="dpms-stack-label"><strong>${label}</strong><span>${number(blockTotals[side])} tokens</span></div>
-        <div class="dpms-stack-track" aria-hidden="true">${blocks.map(([name, off, on], index) => {
+        <div class="dpms-stack-track" aria-hidden="true"><div class="dpms-stack-fill" data-dpms-bar>${blocks.map(([name, off, on], index) => {
           const value = side === 0 ? off : on;
           return value ? `<span class="dpms-stack-segment dpms-block-${index}" style="width:${value / blockTotals[0] * 100}%" title="${escapeHtml(name)}: ${number(value)} tokens">${value >= 1600 ? (value / 1000).toFixed(1) + 'k' : ''}</span>` : '';
-        }).join('')}</div>
+        }).join('')}</div></div>
       </div>`).join('');
     return `
       <section class="dpms-breakdown" aria-labelledby="dpms-block-title">
         <h3 id="dpms-block-title">Average input tokens by block</h3>
         <p>25 planner steps · OFF is the constructed reference; ON is the actual DPMS v1 input.</p>
-        <figure class="dpms-stacked-chart">
+        <figure class="dpms-stacked-chart" data-dpms-chart aria-labelledby="dpms-block-title">
           ${stacks}
           <figcaption>Blocks share the same scale. Colors match the table below.</figcaption>
         </figure>
@@ -1435,21 +1512,21 @@
           <div class="dpms-measurement">
             <div class="dpms-result">
               <span class="dpms-eyebrow">V1 · INTERNAL MEASUREMENT</span>
-              <p class="dpms-result-number">50.1<span>%</span></p>
+              <p class="dpms-result-number" data-dpms-counter><span class="dpms-result-accessible">50.1%</span><span aria-hidden="true"><span data-dpms-count>50.1</span><span class="dpms-result-unit">%</span></span></p>
               <h3>fewer input tokens</h3>
               <p>Across 25 planner steps<br />from 12 requests.</p>
               <a class="dpms-text-link" href="#/#editions">Compare editions <span aria-hidden="true">↗</span></a>
             </div>
-            <figure class="dpms-chart" aria-labelledby="dpms-chart-title">
+            <figure class="dpms-chart" data-dpms-chart aria-labelledby="dpms-chart-title">
               <figcaption id="dpms-chart-title">Average input tokens per planner step</figcaption>
               <dl class="dpms-bars">
                 <div class="dpms-bar-row">
                   <dt>DPMS off <small>Constructed reference</small></dt>
-                  <dd><strong>31,875</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-baseline"></span></span></dd>
+                  <dd><strong>31,875</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-baseline" data-dpms-bar></span></span></dd>
                 </div>
                 <div class="dpms-bar-row">
                   <dt>DPMS v1 <small>Actual model input</small></dt>
-                  <dd><strong>15,916</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-on"></span></span></dd>
+                  <dd><strong>15,916</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-on" data-dpms-bar></span></span></dd>
                 </div>
               </dl>
               <p class="dpms-chart-note">Same planner steps · zero-based scale · lower is better</p>
