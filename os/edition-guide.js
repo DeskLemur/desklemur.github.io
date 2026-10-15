@@ -2,7 +2,7 @@
 window.DESKLEMUR_EDITION_GUIDE = {
   "schema_version": 1,
   "source": "build_release.py",
-  "source_hash": "c6de240b01ab8d45b1cd33dc5f57e3da4dc7dec83d4c207edc4e5734905892c9",
+  "source_hash": "c03540b67d85dec5676b3327c5398bc2c681d2403ef4491b19ac2a399b580049",
   "editions": [
     {
       "id": "standard",
@@ -13,7 +13,7 @@ window.DESKLEMUR_EDITION_GUIDE = {
     {
       "id": "pro",
       "name": "Pro",
-      "summary": "Bundled local inference with DPMS for lower token usage and faster processing.",
+      "summary": "Bundled local inference with DPMS for lower input token usage.",
       "availability": "listed"
     },
     {
@@ -77,7 +77,7 @@ window.DESKLEMUR_EDITION_GUIDE = {
     {
       "id": "execution_state",
       "label": "DPMS",
-      "description": "Reduces token usage to speed up processing.",
+      "description": "Designed to reduce input token usage for faster processing.",
       "values": {
         "standard": "Not included",
         "pro": "Available",
@@ -144,7 +144,7 @@ window.DESKLEMUR_EDITION_GUIDE = {
   "notes": [
     {
       "title": "DPMS",
-      "body": "Reduces token usage to speed up processing."
+      "body": "Designed to reduce input token usage for faster processing. See the DPMS section for the v1 token comparison."
     },
     {
       "title": "Compatibility",

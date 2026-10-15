@@ -553,7 +553,7 @@
   function productJumpTemplate() {
     const entries = [
       ['workflows', 'Workflows'], ['capabilities', 'Overview'], ['editions', 'Editions'],
-      ['workspace-features', 'Features'], ['runtime', 'Runtime', 'runtime'],
+      ['workspace-features', 'Features'], ['dpms', 'DPMS'], ['runtime', 'Runtime', 'runtime'],
       ['security', 'Permissions', 'security'], ['faq', 'Questions'],
     ].filter(([, , feature]) => !feature || featureEnabled(feature));
     return `<nav class="product-jump" aria-label="Explore this product"><div class="container">${entries.map(([id, label]) => `<a href="#/#${id}">${label}</a>`).join('')}</div></nav>`;
@@ -1179,6 +1179,95 @@
     playScenario();
   }
 
+  function dpmsMeasurementDetailsTemplate() {
+    const blocks = [
+      ['Planner rules', 17405, 1707],
+      ['Tool capability catalog', 3267, 2128],
+      ['Shared runtime contracts', 3363, 3433],
+      ['User profile', 1019, 0],
+      ['Memory', 1246, 808],
+      ['Conversation history', 1658, 968],
+      ['Recent file artifacts', 597, 0],
+      ['Evidence policy', 3, 83],
+      ['Schemas of tools in use', 139, 2672],
+      ['Configured agent directory', 37, 916],
+      ['Per-step state', 3138, 3201],
+    ];
+    const steps = [
+      ['Plain question, step 1', 31469, 14874],
+      ['Greeting, step 1', 28883, 13411],
+      ['Notion read, step 1', 29239, 12633],
+      ['Notion read, step 2', 34589, 20173],
+      ['Notion read, step 3', 35456, 21887],
+      ['Clock, step 1', 29160, 14904],
+      ['Plain question, step 1 (b)', 29380, 14846],
+      ['Greeting, step 1 (b)', 28990, 14404],
+      ['Calculator, step 1', 29383, 11893],
+      ['Calculator, step 2', 29921, 12848],
+      ['File write, step 1', 33314, 12926],
+      ['File write, step 2', 34002, 16432],
+      ['File read, step 1', 29096, 15099],
+      ['File write, step 1 (b)', 39041, 16600],
+      ['File write, step 2 (b)', 39730, 17289],
+      ['File read, step 1 (b)', 28723, 14478],
+      ['File read, step 2', 29456, 15856],
+      ['File edit, step 1', 29077, 15411],
+      ['File edit, step 2', 37341, 19715],
+      ['Web search, step 1', 29238, 15416],
+      ['Web search, step 2', 36985, 24149],
+      ['Delegation, step 1', 30457, 13901],
+      ['Delegation, step 2', 31632, 16138],
+      ['Delegated agent, step 1', 30021, 15434],
+      ['Delegation, step 3', 32297, 17191],
+    ];
+    const number = value => value.toLocaleString('en-US');
+    const totals = rows => rows.reduce((sum, row) => [sum[0] + row[1], sum[1] + row[2]], [0, 0]);
+    const blockTotals = totals(blocks);
+    const stepTotals = totals(steps);
+    const signed = value => `${value > 0 ? '+' : value < 0 ? '−' : ''}${number(Math.abs(value))}`;
+    const stepCells = (off, on) => `<td>${number(off)}</td><td>${number(on)}</td><td>${number(off - on)}</td><td>${((off - on) / off * 100).toFixed(1)}%</td>`;
+    const stacks = ['DPMS off', 'DPMS on'].map((label, side) => `
+      <div class="dpms-stack-row">
+        <div class="dpms-stack-label"><strong>${label}</strong><span>${number(blockTotals[side])} tokens</span></div>
+        <div class="dpms-stack-track" aria-hidden="true">${blocks.map(([name, off, on], index) => {
+          const value = side === 0 ? off : on;
+          return value ? `<span class="dpms-stack-segment dpms-block-${index}" style="width:${value / blockTotals[0] * 100}%" title="${escapeHtml(name)}: ${number(value)} tokens">${value >= 1600 ? (value / 1000).toFixed(1) + 'k' : ''}</span>` : '';
+        }).join('')}</div>
+      </div>`).join('');
+    return `
+      <section class="dpms-breakdown" aria-labelledby="dpms-block-title">
+        <h3 id="dpms-block-title">Average input tokens by block</h3>
+        <p>25 planner steps · OFF is the constructed reference; ON is the actual DPMS v1 input.</p>
+        <figure class="dpms-stacked-chart">
+          ${stacks}
+          <figcaption>Blocks share the same scale. Colors match the table below.</figcaption>
+        </figure>
+        <p class="dpms-scroll-hint">Scroll the table sideways to see all columns.</p>
+        <div class="dpms-table-scroll" role="region" aria-label="Block token counts" tabindex="0">
+          <table class="dpms-data-table dpms-block-table">
+            <caption>Average tokens per planner step, by block</caption>
+            <thead><tr><th scope="col">Block</th><th scope="col">OFF</th><th scope="col">ON</th><th scope="col">Change</th></tr></thead>
+            <tbody>${blocks.map(([name, off, on], index) => `<tr><th scope="row"><span class="dpms-block-swatch dpms-block-${index}" aria-hidden="true"></span>${escapeHtml(name)}</th><td>${number(off)}</td><td>${number(on)}</td><td>${signed(on - off)}</td></tr>`).join('')}</tbody>
+            <tfoot><tr><th scope="row">Sum of rounded blocks</th><td>${number(blockTotals[0])}</td><td>${number(blockTotals[1])}</td><td>${signed(blockTotals[1] - blockTotals[0])}</td></tr></tfoot>
+          </table>
+        </div>
+        <p class="dpms-data-note">Block figures are rounded and counted separately, so their sums can differ slightly from the whole-prompt totals above. Change means ON minus OFF.</p>
+      </section>
+      <details class="dpms-data-detail">
+        <summary>Per-step totals <span>25 measured steps</span></summary>
+        <p class="dpms-scroll-hint">Scroll the table sideways to see all columns.</p>
+        <div class="dpms-table-scroll" role="region" aria-label="Per-step token counts" tabindex="0">
+          <table class="dpms-data-table dpms-step-table">
+            <caption>Whole-prompt input tokens for each measured step</caption>
+            <thead><tr><th scope="col">Step</th><th scope="col">OFF</th><th scope="col">ON</th><th scope="col">Saved</th><th scope="col">Reduction</th></tr></thead>
+            <tbody>${steps.map(([name, off, on]) => `<tr><th scope="row">${escapeHtml(name)}</th>${stepCells(off, on)}</tr>`).join('')}</tbody>
+            <tfoot><tr><th scope="row">All 25 steps</th>${stepCells(...stepTotals)}</tr></tfoot>
+          </table>
+        </div>
+        <p class="dpms-data-note">Saved = OFF − ON. Reduction = saved ÷ OFF. Labels ending in (b) indicate a second run of the same request. Agent names are omitted.</p>
+      </details>`;
+  }
+
   function renderHome() {
     applyPageTheme("home");
     document.title = "DeskLemurOS — Toward a Local Agent OS";
@@ -1341,8 +1430,41 @@
           </div>
         </section>
 
-        <section class="section speed-section"><div class="container">
-          <div class="section-heading"><div><div class="section-kicker">ENGINEERED FOR SPEED</div><h2>Less repeated work.</h2></div><p>Stable context and reusable runtime state reduce repeated preparation. DPMS reduces token usage to speed up processing in editions that include it.</p></div>
+        <section class="section speed-section" id="dpms"><div class="container">
+          <div class="section-heading"><div><div class="section-kicker">DPMS · LESS INPUT TO PROCESS</div><h2>A lighter start<br />for your AI.</h2></div><p>DPMS reduces input token usage, aiming to speed up input processing. Here is what we measured with v1.</p></div>
+          <div class="dpms-measurement">
+            <div class="dpms-result">
+              <span class="dpms-eyebrow">V1 · INTERNAL MEASUREMENT</span>
+              <p class="dpms-result-number">50.1<span>%</span></p>
+              <h3>fewer input tokens</h3>
+              <p>Across 25 planner steps<br />from 12 requests.</p>
+              <a class="dpms-text-link" href="#/#editions">Compare editions <span aria-hidden="true">↗</span></a>
+            </div>
+            <figure class="dpms-chart" aria-labelledby="dpms-chart-title">
+              <figcaption id="dpms-chart-title">Average input tokens per planner step</figcaption>
+              <dl class="dpms-bars">
+                <div class="dpms-bar-row">
+                  <dt>DPMS off <small>Constructed reference</small></dt>
+                  <dd><strong>31,875</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-baseline"></span></span></dd>
+                </div>
+                <div class="dpms-bar-row">
+                  <dt>DPMS v1 <small>Actual model input</small></dt>
+                  <dd><strong>15,916</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-on"></span></span></dd>
+                </div>
+              </dl>
+              <p class="dpms-chart-note">Same planner steps · zero-based scale · lower is better</p>
+            </figure>
+          </div>
+          <div class="dpms-measurement-footer">
+            <p>9 October 2026 · Gemma 4 26B-A4B (Q4) · llama.cpp</p>
+            ${featureEnabled("vision") ? '<a class="dpms-text-link" href="../labs/index.html#dpms-roadmap">What comes after v1 <span aria-hidden="true">→</span></a>' : ""}
+          </div>
+          <p class="dpms-measurement-note">Input-token comparison, not a measured speedup. Results vary by model and task.</p>
+          <details class="support-detail dpms-method"><summary>About this measurement</summary><div class="support-detail-body">
+            <p>Actual DPMS v1 inputs were compared with a locally constructed DPMS-off reference for the same 25 planner steps. Both were counted with the model’s tokenizer; the reference was not sent to the model.</p>
+            <p>The 50.1% reduction compares total input tokens across the sample. The chart shows rounded averages per step. This comparison does not measure end-to-end latency or answer quality.</p>
+            ${dpmsMeasurementDetailsTemplate()}
+          </div></details>
           <details class="support-detail" id="runtime-optimizations"><summary>Explore runtime optimizations</summary><div class="support-detail-body">
             <ul class="speed-list">
               <li><strong>Step-context KV cache</strong> — stable prompt prefixes support cache reuse when the model server accepts them.</li>
@@ -2081,23 +2203,48 @@
 
         <section class="section vision-chapter" id="research-direction">
           <div class="container narrow">
-            <div class="section-kicker">MEMORY THAT LEARNS</div>
-            <figure class="section-art vision-chapter-art art-right">
-              <img src="${cacheUrl("./assets/vision/web/memory-that-learns.webp")}" alt="Validated experience becoming learning-ready model knowledge" loading="lazy" />
-            </figure>
-            <h2>From remembered experience to measured improvement.</h2>
+            <div class="section-kicker">DESKLEMUR LABS · DIRECT PLASTICITY</div>
+            <h2>Can AI grow through experience?</h2>
             <p class="section-description">
-              Current memory features store and retrieve information for later tasks.
-              Candidate metadata and research modes do not mean that an ordinary chat
-              rewrites a model’s weights. Retrieval, normalization policies, and model
-              training are different mechanisms.
+              DPMS v1 focuses on reducing input token usage. Direct Plasticity is our
+              ongoing research into more adaptive AI: how experience might support
+              useful memory, continuity, and improvement over time.
             </p>
             <p class="section-description">
-              The research direction is to evaluate whether verified experience can become
-              useful training data, with explicit review, regression checks, and a way to
-              reverse a change. This is work to investigate, not a guaranteed self-learning
-              feature or a claim of AGI.
+              We are developing this direction in stages. The v1 measurement describes
+              token efficiency; the later stages explore new capabilities that still
+              need their own evaluation.
             </p>
+          </div>
+        </section>
+
+        <section class="section dpms-roadmap-section" id="dpms-roadmap">
+          <div class="container">
+            <div class="section-heading"><div><div class="section-kicker">DPMS · THE RESEARCH ROADMAP</div><h2>One step at a time.</h2></div><p>From measured token savings toward AI that can adapt through experience.</p></div>
+            <ol class="dpms-roadmap" aria-label="DPMS development stages">
+              <li class="dpms-stage dpms-stage-complete">
+                <div class="dpms-stage-top"><span class="dpms-version">v1</span><span class="dpms-stage-status">Measured</span></div>
+                <h3>Token efficiency</h3>
+                <p>Lower input token usage. The current internal comparison measured a 50.1% reduction.</p>
+                <a class="dpms-text-link" href="#/#dpms">See the measurement <span aria-hidden="true">↗</span></a>
+              </li>
+              <li class="dpms-stage dpms-stage-complete">
+                <div class="dpms-stage-top"><span class="dpms-version">v2</span><span class="dpms-stage-status">Development complete</span></div>
+                <h3>A research milestone</h3>
+                <p>A completed stage exploring memory and continuity for AI.</p>
+              </li>
+              <li class="dpms-stage dpms-stage-active">
+                <div class="dpms-stage-top"><span class="dpms-version">v3</span><span class="dpms-stage-status">In development</span></div>
+                <h3>More adaptive AI</h3>
+                <p>Working toward memory that adapts as tasks and information change.</p>
+              </li>
+              <li class="dpms-stage dpms-stage-future">
+                <div class="dpms-stage-top"><span class="dpms-version">v4</span><span class="dpms-stage-status">Planned after v3</span></div>
+                <h3>Autonomous evolution</h3>
+                <p>A future direction: systems that improve through experience. Work follows v3.</p>
+              </li>
+            </ol>
+            <p class="dpms-roadmap-note">Research status as of October 2026. Development milestones are not release dates or guarantees of public availability. The v1 measurement does not establish the performance of later versions.</p>
           </div>
         </section>
 

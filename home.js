@@ -1,6 +1,7 @@
 (() => {
   "use strict";
   const key = "desklemur-theme";
+  const siteRoot = new URL("./", document.currentScript?.src || document.baseURI);
   const root = document.documentElement;
   const header = document.querySelector(".site-header");
   const navigation = document.querySelector(".main-nav");
@@ -24,16 +25,16 @@
     let key = path.replace(/^\.\//, "");
     try { key = decodeURIComponent(key); } catch (_) { /* Preserve malformed paths safely. */ }
     const version = cache.assets?.[key] || cache.version;
-    if (!version) return url;
+    if (!version) return new URL(url, siteRoot).href;
     const params = new URLSearchParams(query);
     params.set("v", version);
-    return `${path}?${params.toString()}${hash ? `#${hash}` : ""}`;
+    return new URL(`${path}?${params.toString()}${hash ? `#${hash}` : ""}`, siteRoot).href;
   };
 
   const refreshForNewVersion = () => {
     const current = cache.version;
     if (!current || !window.fetch) return;
-    fetch("./site-version.json", { cache: "no-store" })
+    fetch(new URL("./site-version.json", siteRoot), { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : null))
       .then((manifest) => {
         const next = manifest?.version;

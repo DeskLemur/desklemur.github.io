@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "fc1a94271803067d",
+    "version": "ec03b2fa88370f91",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -50,13 +50,14 @@ window.DESKLEMUR_SITE = {
       "assets/web/memory-with-boundaries.webp": "2d2eba01d0295ee1",
       "assets/web/signal-lemur-208.webp": "4b3f868f1de258db",
       "desklemur-mark.png": "379e0ee2654109b5",
-      "home.css": "cf1c5b678b7da988",
-      "home.js": "5b96928add002679",
+      "home.css": "1f4386bca7750899",
+      "home.js": "bab61d82efb54603",
+      "labs/styles.css": "383bcfa87ea9b9b0",
       "news/news.css": "0ba6967d2301a8c2",
       "news/news.js": "f3f317bd07592cf0",
       "news-data.js": "0c614f223b539d92",
       "og.png": "7cde432b7eea1eac",
-      "os/app.js": "2a337e4b09a7708b",
+      "os/app.js": "3bfee86ecf3fb4fa",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
@@ -127,12 +128,12 @@ window.DESKLEMUR_SITE = {
       "os/assets/web/icon-light-64.png": "aa816a87784f6b7e",
       "os/assets/web/touch-icon-180.png": "040274e06d4dc0bd",
       "os/assets/web/touch-icon-light-180.png": "cf040845a86ca3fa",
-      "os/edition-guide.js": "f01d5d1d8c55fa51",
+      "os/edition-guide.js": "7e8d49398598d0c8",
       "os/live/demo_feed.js": "56288c601f87c620",
       "os/live/system_graph.css": "dae953fcf587184b",
       "os/live/system_graph.js": "cda07ae27310c292",
       "os/live/tauri_bridge.js": "8615ea348012412b",
-      "os/styles.css": "9f7ec9d8f5904536"
+      "os/styles.css": "00b20e5d3731f4fa"
     }
   }
 };

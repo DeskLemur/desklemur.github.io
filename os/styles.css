@@ -18,6 +18,109 @@
   --max-width: 1240px;
 }
 
+/* Public DPMS measurement and research milestones. */
+.dpms-measurement {
+  display: grid;
+  grid-template-columns: minmax(240px, .85fr) minmax(0, 1.4fr);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--panel);
+}
+.dpms-result { padding: clamp(24px, 4vw, 48px); background: rgba(216, 111, 54, .07); }
+.dpms-eyebrow { color: var(--muted); font-size: .69rem; font-weight: 700; letter-spacing: .09em; }
+.dpms-result .dpms-result-number { margin: 20px 0 0; color: var(--orange-bright); font-size: clamp(4.5rem, 8vw, 7rem); line-height: 1; letter-spacing: -.07em; font-weight: 750; font-variant-numeric: tabular-nums; }
+.dpms-result-number span { font-size: .5em; letter-spacing: -.04em; }
+.dpms-result h3 { margin: 8px 0 18px; font-size: 1.3rem; font-weight: 600; }
+.dpms-result > p:not(.dpms-result-number) { color: var(--muted); font-size: .9rem; line-height: 1.7; }
+.dpms-text-link { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; color: var(--orange-bright); font-size: .85rem; font-weight: 650; }
+.dpms-text-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+.dpms-chart { min-width: 0; margin: 0; padding: clamp(24px, 4vw, 48px); align-self: center; }
+.dpms-chart figcaption { font-size: 1rem; font-weight: 650; }
+.dpms-bars { margin: 30px 0 24px; display: grid; gap: 26px; }
+.dpms-bar-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+.dpms-bar-row dt { font-size: .9rem; font-weight: 650; }
+.dpms-bar-row dt small { display: block; color: var(--muted); margin-top: 4px; font-size: .73rem; font-weight: 400; }
+.dpms-bar-row dd { display: contents; }
+.dpms-bar-row dd strong { font-size: 1.45rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.dpms-bar-track { grid-column: 1 / -1; display: block; height: 22px; border-radius: 4px; overflow: hidden; background: rgba(127, 127, 127, .08); }
+.dpms-bar-fill { display: block; height: 100%; border-radius: inherit; }
+.dpms-bar-baseline { width: 100%; background: var(--muted); opacity: .55; }
+.dpms-bar-on { width: 49.9325%; background: var(--orange); }
+.dpms-chart-note { color: var(--muted); font-size: .72rem; line-height: 1.6; }
+.dpms-measurement-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; margin-top: 16px; }
+.dpms-measurement-footer p, .dpms-measurement-note { margin: 0; color: var(--muted); font-size: .75rem; line-height: 1.7; }
+.dpms-measurement-note { margin-top: 4px; }
+.dpms-method { margin-top: 24px; }
+.dpms-breakdown { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 26px; }
+.dpms-breakdown h3 { margin: 0 0 8px; font-size: 1.2rem; color: var(--text); }
+.dpms-stacked-chart { margin: 26px 0; }
+.dpms-stack-row + .dpms-stack-row { margin-top: 22px; }
+.dpms-stack-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; color: var(--text); font-size: .85rem; }
+.dpms-stack-label span { font-variant-numeric: tabular-nums; }
+.dpms-stack-track { display: flex; height: 48px; width: 100%; background: rgba(127,127,127,.08); overflow: hidden; border-radius: 4px; }
+.dpms-stack-segment { display: flex; align-items: center; justify-content: center; flex-shrink: 0; min-width: 0; overflow: hidden; background: var(--block-color); color: var(--block-ink, #151512); font-size: .7rem; font-variant-numeric: tabular-nums; box-shadow: inset -1px 0 rgba(255,255,255,.35); }
+.dpms-stacked-chart figcaption { margin-top: 12px; color: var(--muted); font-size: .75rem; line-height: 1.6; }
+.dpms-block-0 { --block-color: #3d5f96; --block-ink: #fff; }
+.dpms-block-1 { --block-color: #7e9fc6; }
+.dpms-block-2 { --block-color: #b9c9dd; }
+.dpms-block-3 { --block-color: #bf4d48; --block-ink: #fff; }
+.dpms-block-4 { --block-color: #e69a56; }
+.dpms-block-5 { --block-color: #f2c67d; }
+.dpms-block-6 { --block-color: #9d7cb5; }
+.dpms-block-7 { --block-color: #32865a; --block-ink: #fff; }
+.dpms-block-8 { --block-color: #6eafd2; }
+.dpms-block-9 { --block-color: #a2d197; }
+.dpms-block-10 { --block-color: #bdbdbd; }
+.dpms-table-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; }
+.dpms-table-scroll:focus-visible { outline: 2px solid var(--orange-bright); outline-offset: 4px; }
+.dpms-data-table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: .82rem; font-variant-numeric: tabular-nums; color: var(--text); }
+.dpms-step-table { min-width: 660px; }
+.dpms-data-table caption { padding: 14px 16px; color: var(--muted); text-align: left; font-size: .75rem; }
+.dpms-data-table th, .dpms-data-table td { padding: 12px 16px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.dpms-data-table th:first-child { text-align: left; white-space: normal; }
+.dpms-data-table th[scope="row"] { font-weight: 450; }
+.dpms-data-table thead, .dpms-data-table tfoot { background: rgba(127,127,127,.07); }
+.dpms-data-table tfoot th[scope="row"], .dpms-data-table tfoot td { font-weight: 650; }
+.dpms-data-table tbody tr:hover { background: rgba(127,127,127,.05); }
+.dpms-block-swatch { display: inline-block; width: 11px; height: 11px; border-radius: 2px; background: var(--block-color); margin-right: 10px; }
+.dpms-method .dpms-data-note { color: var(--muted); font-size: .75rem; line-height: 1.8; margin: 14px 0 0; }
+.dpms-data-detail { border-top: 1px solid var(--line); margin-top: 26px; }
+.dpms-method .dpms-data-detail > summary { padding: 20px 0; }
+.dpms-data-detail > summary span { margin-left: 10px; color: var(--muted); font-size: .75rem; font-weight: 400; }
+.dpms-scroll-hint { display: none; }
+.dpms-data-detail > summary { cursor: pointer; color: var(--text); font-weight: 600; }
+.dpms-data-detail > summary::marker { color: var(--orange-bright); }
+@media (max-width: 650px) {
+  .dpms-method .dpms-scroll-hint { display: block; color: var(--muted); font-size: .72rem; }
+  .dpms-stack-segment { font-size: 0; }
+  .dpms-stack-track { height: 32px; }
+  .dpms-data-detail > summary span { display: block; margin: 4px 0 0; }
+}
+.dpms-roadmap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; padding: 0; margin: 0; list-style: none; }
+.dpms-stage { padding: 24px; border: 1px solid var(--line); border-top: 3px solid var(--line-bright); border-radius: 8px; background: var(--panel); display: flex; flex-direction: column; align-items: flex-start; }
+.dpms-stage-top { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+.dpms-version { color: var(--muted); font-size: 2rem; font-weight: 650; letter-spacing: -.04em; }
+.dpms-stage-status { color: var(--muted); font-size: .7rem; line-height: 1.5; font-weight: 650; }
+.dpms-stage h3 { margin: 22px 0 12px; font-size: 1.1rem; line-height: 1.3; }
+.dpms-stage p { margin: 0 0 12px; color: var(--muted); font-size: .86rem; line-height: 1.75; }
+.dpms-stage .dpms-text-link { margin-top: auto; }
+.dpms-stage-complete { border-top-color: var(--green); }
+.dpms-stage-complete .dpms-stage-status { color: var(--green); }
+.dpms-stage-active { border-top-color: var(--orange); background: linear-gradient(rgba(216,111,54,.06), transparent), var(--panel); }
+.dpms-stage-active .dpms-stage-status, .dpms-stage-active .dpms-version { color: var(--orange-bright); }
+.dpms-stage-future { border-style: dashed; }
+.dpms-roadmap-note { color: var(--muted); font-size: .76rem; line-height: 1.8; max-width: 850px; margin: 22px 0 0; }
+@media (max-width: 1000px) { .dpms-roadmap { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 650px) {
+  .dpms-measurement { grid-template-columns: 1fr; }
+  .dpms-result { border-bottom: 1px solid var(--line); }
+  .dpms-roadmap { grid-template-columns: 1fr; }
+  .dpms-stage-top { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+  .dpms-stage-status { text-align: right; }
+  .dpms-bar-row dd strong { font-size: 1.25rem; }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -638,6 +741,7 @@ input {
 
 .capability-card {
   position: relative;
+  min-width: 0;
   min-height: 260px;
   padding: 31px;
   border-right: 1px solid var(--line);

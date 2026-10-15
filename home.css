@@ -218,3 +218,30 @@ html.light-theme .home-page .lab-card-visual::after { background:linear-gradient
   html { scroll-behavior:auto; }
   .home-page *, .home-page *::before, .home-page *::after { animation:none !important; transition:none !important; }
 }
+
+/* Public research overview beneath the existing Labs cards. */
+.home-page .labs-research { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,.85fr); align-items:center; gap:48px; margin-top:20px; padding:34px 36px; border:1px solid var(--line); border-left:3px solid var(--orange); background:var(--panel); }
+.home-page .labs-research-copy { min-width:0; }
+.home-page .labs-research .eyebrow { margin-bottom:16px; font-size:10px; line-height:1.6; }
+.home-page .labs-research h3 { margin:0 0 16px; color:var(--ink); font-size:clamp(27px,2.6vw,36px); line-height:1.08; letter-spacing:-.045em; }
+.home-page .labs-research-copy > p:not(.eyebrow) { max-width:480px; margin:0; color:var(--muted); font-size:14px; line-height:1.7; }
+.home-page .labs-research-links { display:flex; flex-wrap:wrap; gap:0 24px; margin-top:17px; }
+.home-page .labs-research-links a { display:inline-flex; align-items:center; gap:10px; min-height:44px; color:var(--ink); font-size:12px; line-height:1.5; font-weight:700; }
+.home-page .labs-research-links a span { color:var(--orange-light); }
+.home-page .labs-research-links a:hover { color:var(--orange-light); text-decoration:underline; text-underline-offset:4px; }
+.home-page .labs-research-progress { min-width:0; }
+.home-page .labs-research-milestones { display:grid; gap:10px; margin:0; padding:0; list-style:none; }
+.home-page .labs-research-milestones li { display:grid; grid-template-columns:28px minmax(0,1fr); align-items:baseline; gap:12px; padding:13px 16px; border:1px solid var(--line); }
+.home-page .labs-research-milestones span { color:var(--orange-light); font:700 12px/1.6 monospace; }
+.home-page .labs-research-milestones strong { color:var(--ink); font-size:12px; line-height:1.6; font-weight:500; }
+.home-page .labs-research-note { margin:12px 0 0; color:var(--muted); font-size:11px; line-height:1.6; }
+@media (max-width:850px) {
+  .home-page .labs-research { grid-template-columns:1fr; gap:28px; padding:30px; }
+  .home-page .labs-research-copy > p:not(.eyebrow) { max-width:560px; }
+}
+@media (max-width:600px) {
+  .home-page .labs-research { gap:24px; margin-top:16px; padding:27px 22px; }
+  .home-page .labs-research h3 { font-size:29px; }
+  .home-page .labs-research-links { align-items:flex-start; flex-direction:column; gap:2px; }
+  .home-page .labs-research-milestones li { padding:12px; gap:8px; }
+}
