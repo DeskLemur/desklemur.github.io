@@ -47,12 +47,25 @@
 .dpms-bar-track { grid-column: 1 / -1; display: block; height: 22px; border-radius: 4px; overflow: hidden; background: rgba(127, 127, 127, .08); }
 .dpms-bar-fill { display: block; height: 100%; border-radius: inherit; }
 .dpms-bar-baseline { width: 100%; background: var(--muted); opacity: .55; }
-.dpms-bar-on { width: 49.9325%; background: var(--orange); }
+.dpms-bar-on { width: 14.4784%; background: var(--orange); }
 .dpms-chart-note { color: var(--muted); font-size: .72rem; line-height: 1.6; }
 .dpms-measurement-footer { display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap; margin-top: 16px; }
 .dpms-measurement-footer p, .dpms-measurement-note { margin: 0; color: var(--muted); font-size: .75rem; line-height: 1.7; }
 .dpms-measurement-note { margin-top: 4px; }
 .dpms-method { margin-top: 24px; }
+.dpms-session-summary { margin-top: 24px; padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.dpms-session-summary h3 { margin: 0 0 8px; color: var(--text); font-size: 1rem; }
+.dpms-session-summary > p { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.7; }
+.dpms-session-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 22px 0 0; }
+.dpms-session-metrics > div { min-width: 0; padding-top: 18px; border-top: 1px solid var(--line); }
+.dpms-session-metrics dt { color: var(--muted); font-size: .78rem; line-height: 1.5; }
+.dpms-session-metrics dd { margin: 10px 0 0; }
+.dpms-session-metrics strong { display: block; color: var(--orange-bright); font-size: 2rem; font-weight: 650; font-variant-numeric: tabular-nums; }
+.dpms-session-metrics dd span { display: block; margin-top: 6px; color: var(--muted); font-size: .75rem; line-height: 1.7; }
+@media (max-width: 650px) {
+  .dpms-session-metrics { grid-template-columns: 1fr; gap: 16px; }
+  .dpms-session-metrics dd { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 18px; }
+}
 .dpms-breakdown { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 26px; }
 .dpms-breakdown h3 { margin: 0 0 8px; font-size: 1.2rem; color: var(--text); }
 .dpms-stacked-chart { margin: 26px 0; }

@@ -143,6 +143,45 @@
   hydrateSiteContent();
   applyFeatureVisibility();
   renderNews();
+
+  const viewer = document.querySelector("#screen-viewer");
+  document.querySelectorAll("[data-screen-gallery]").forEach((gallery) => {
+    const tabs = [...gallery.querySelectorAll('[role="tab"]')];
+    const panels = [...gallery.querySelectorAll('[role="tabpanel"]')];
+    const selectTab = (selected, focus = false) => {
+      tabs.forEach((tab) => {
+        const active = tab === selected;
+        tab.setAttribute("aria-selected", String(active));
+        tab.tabIndex = active ? 0 : -1;
+      });
+      panels.forEach((panel) => { panel.hidden = panel.id !== selected.getAttribute("aria-controls"); });
+      if (focus) selected.focus();
+    };
+    tabs.forEach((tab, index) => {
+      tab.addEventListener("click", () => selectTab(tab));
+      tab.addEventListener("keydown", (event) => {
+        const next = { ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index + tabs.length - 1) % tabs.length, Home: 0, End: tabs.length - 1 }[event.key];
+        if (next === undefined) return;
+        event.preventDefault();
+        selectTab(tabs[next], true);
+      });
+    });
+    gallery.querySelectorAll("[data-screen-open]").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (!viewer || typeof viewer.showModal !== "function") return;
+        const source = button.querySelector("img");
+        const full = viewer.querySelector("[data-screen-full]");
+        full.src = source.currentSrc || source.src;
+        full.alt = source.alt;
+        viewer.querySelector("#screen-viewer-title").textContent = button.closest("figure").querySelector("figcaption strong").textContent;
+        viewer.showModal();
+        root.classList.add("screenshot-open");
+      });
+    });
+  });
+  viewer?.addEventListener("close", () => root.classList.remove("screenshot-open"));
+  viewer?.addEventListener("click", (event) => { if (event.target === viewer) viewer.close(); });
+
   toggle?.addEventListener("click", () => setTheme(root.classList.contains("light-theme") ? "dark" : "light", true));
   window.addEventListener("storage", (event) => {
     if (event.key === key || event.key === null) setTheme(readTheme());

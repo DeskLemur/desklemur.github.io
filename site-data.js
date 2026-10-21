@@ -2,14 +2,14 @@ window.DESKLEMUR_SITE = {
   "site": {
     "github_url": "https://github.com/desklemur-dev/DeskLemurOS",
     "contact_email": "desklemur@outlook.com",
-    "location": "...",
+    "location": "Independent development",
     "copyright_year": "2026"
   },
   "home": {
     "hero_kicker": "LOCAL AI SYSTEMS STUDIO",
     "hero_title": "Local intelligence,",
     "hero_title_accent": "made operable.",
-    "hero_lead": "DeskLemur builds local AI systems you can run, inspect, automate, and own — agents, tools, memory, and live runtime traces close to the people and machines that depend on them.",
+    "hero_lead": "A desktop workspace where local AI agents research the web, work with files, and use your connected tools.",
     "hero_cta_label": "Explore DeskLemurOS",
     "footer_tagline": "Independent systems for an intelligent future."
   },
@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "2017b6d3fbb07958",
+    "version": "247065b470fb64ed",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -50,14 +50,14 @@ window.DESKLEMUR_SITE = {
       "assets/web/memory-with-boundaries.webp": "2d2eba01d0295ee1",
       "assets/web/signal-lemur-208.webp": "225fd29b259d6c2b",
       "desklemur-mark.png": "379e0ee2654109b5",
-      "home.css": "d13ef28c2d5af5da",
-      "home.js": "bab61d82efb54603",
+      "home.css": "8f2bbfee023d323c",
+      "home.js": "8841248973b69c00",
       "labs/styles.css": "383bcfa87ea9b9b0",
       "news/news.css": "0ba6967d2301a8c2",
       "news/news.js": "f3f317bd07592cf0",
-      "news-data.js": "0c614f223b539d92",
+      "news-data.js": "c041c08be8fa48c0",
       "og.png": "7cde432b7eea1eac",
-      "os/app.js": "e7b886d6600db093",
+      "os/app.js": "8a64241d5c517e0b",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
@@ -133,7 +133,7 @@ window.DESKLEMUR_SITE = {
       "os/live/system_graph.css": "dae953fcf587184b",
       "os/live/system_graph.js": "cda07ae27310c292",
       "os/live/tauri_bridge.js": "8615ea348012412b",
-      "os/styles.css": "5eac37b794e2c2bc"
+      "os/styles.css": "015e710f098ce8a0"
     }
   }
 };
