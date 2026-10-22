@@ -25,6 +25,11 @@
 .labs-result dt { color:var(--muted); font-size:13px; }
 .labs-result dd { margin:0; color:var(--ink); font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; }
 .labs-result-unit { margin:12px 0 0; color:var(--muted); font-size:11px; line-height:1.6; }
+.labs-cache-results { margin-top:24px; padding-top:20px; border-top:1px solid var(--line); }
+.labs-cache-results h3 { margin:0 0 16px; color:var(--ink); font-size:12px; line-height:1.6; font-weight:600; }
+.labs-cache-results > p { margin:14px 0 10px; font-size:12px; line-height:1.7; }
+.labs-cache-results strong, .labs-cache-results > a { color:var(--orange-light); }
+.labs-cache-results > a { font-size:12px; line-height:1.7; }
 .labs-result-context { margin:22px 0 14px; padding-top:20px; border-top:1px solid var(--line); color:var(--ink); font-size:12px; line-height:1.8; }
 .labs-result-note { margin:0; color:var(--muted); font-size:12px; line-height:1.7; }
 .labs-page .labs-direction { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:70px; align-items:start; border-top:1px solid var(--line); }

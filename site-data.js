@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "43455aebd6516168",
+    "version": "77aaeb0dda2a0ee0",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -52,12 +52,12 @@ window.DESKLEMUR_SITE = {
       "desklemur-mark.png": "379e0ee2654109b5",
       "home.css": "8f2bbfee023d323c",
       "home.js": "8841248973b69c00",
-      "labs/styles.css": "383bcfa87ea9b9b0",
+      "labs/styles.css": "3c26606039fd9e22",
       "news/news.css": "0ba6967d2301a8c2",
       "news/news.js": "f3f317bd07592cf0",
       "news-data.js": "c041c08be8fa48c0",
       "og.png": "7cde432b7eea1eac",
-      "os/app.js": "54cd2b3b44908f02",
+      "os/app.js": "62b3646f8c97893e",
       "os/assets/7b0576e7-70eb-4dbc-95e9-f6c338a1ef46.png": "b170928da5f3dd37",
       "os/assets/DIRECTION/Built to be extended.png": "d15e12efd1502b88",
       "os/assets/DIRECTION/Many agents, one runtime.png": "a64aaf92531d67ed",
@@ -133,7 +133,7 @@ window.DESKLEMUR_SITE = {
       "os/live/system_graph.css": "dae953fcf587184b",
       "os/live/system_graph.js": "cda07ae27310c292",
       "os/live/tauri_bridge.js": "8615ea348012412b",
-      "os/styles.css": "015e710f098ce8a0"
+      "os/styles.css": "066670b0223a6d75"
     }
   }
 };

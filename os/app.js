@@ -1505,7 +1505,7 @@
               <p class="dpms-result-number" data-dpms-counter><span class="dpms-result-accessible">85.5%</span><span aria-hidden="true"><span data-dpms-count>85.5</span><span class="dpms-result-unit">%</span></span></p>
               <h3>fewer input tokens</h3>
               <p>At each turn’s first planner call.<br />Average across 14 turns per run.</p>
-              <a class="dpms-text-link" href="#/#editions">Compare editions <span aria-hidden="true">↗</span></a>
+              <a class="dpms-text-link" href="#/#dpms-edition-comparison">Compare measured results <span aria-hidden="true">↓</span></a>
             </div>
             <figure class="dpms-chart" data-dpms-chart aria-labelledby="dpms-chart-title">
               <figcaption id="dpms-chart-title">Average input tokens at the first planner call</figcaption>
@@ -1522,15 +1522,42 @@
               <p class="dpms-chart-note">KV cache enabled in both runs · corresponding first calls · lower is better</p>
             </figure>
           </div>
-          <div class="dpms-session-summary" aria-labelledby="dpms-session-title">
-            <h3 id="dpms-session-title">Across the complete test session</h3>
+          <section class="dpms-session-summary" id="dpms-edition-comparison" aria-labelledby="dpms-session-title">
+            <h3 id="dpms-session-title">Standard vs Pro: measured session results</h3>
             <p>12 scenarios · 14 turns per run · KV cache enabled in both runs</p>
-            <dl class="dpms-session-metrics">
-              <div><dt>Fewer tokens computed</dt><dd><strong>62%</strong><span>1,052,196 → 397,539 tokens</span></dd></div>
-              <div><dt>Less input-processing time</dt><dd><strong>74%</strong><span>554.4 → 142.3 seconds</span></dd></div>
-              <div><dt>Lower total turn time</dt><dd><strong>53%</strong><span>851 → 404 seconds</span></dd></div>
-            </dl>
-          </div>
+            <figure class="dpms-cache-comparison" data-dpms-chart aria-labelledby="dpms-cache-chart-title">
+              <figcaption id="dpms-cache-chart-title">Tokens the model actually computed</figcaption>
+              <dl class="dpms-bars">
+                <div class="dpms-bar-row">
+                  <dt>Standard <small>KV cache only</small></dt>
+                  <dd><strong>1,052,196</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-cache-standard" data-dpms-bar></span></span></dd>
+                </div>
+                <div class="dpms-bar-row">
+                  <dt>Pro <small>DPMS + KV cache</small></dt>
+                  <dd><strong>397,539</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-cache-pro" data-dpms-bar></span></span></dd>
+                </div>
+              </dl>
+              <p class="dpms-cache-gain"><strong>62%</strong> fewer tokens computed with Pro than the Standard setup.</p>
+            </figure>
+            <div class="dpms-cache-savings" aria-label="Computation saved against the same reference">
+              <div><span>Standard · KV cache only</span><strong>73% <small>less computation</small></strong></div>
+              <div><span>Pro · DPMS + KV cache</span><strong>90% <small>less computation</small></strong></div>
+            </div>
+            <p class="dpms-cache-reference">Both percentages use the same 3,883,058-token reference: recorded input assuming no DPMS or cache reuse. This is a calculated reference, not a separate cache-off test or an app mode.</p>
+            <p class="dpms-scroll-hint">Scroll the table sideways to see all columns.</p>
+            <div class="dpms-table-scroll" role="region" aria-label="Standard and Pro session comparison" tabindex="0">
+              <table class="dpms-data-table dpms-session-table">
+                <caption>Complete-session totals · lower is better</caption>
+                <thead><tr><th scope="col">Metric</th><th scope="col">Standard<small>KV cache only</small></th><th scope="col">Pro<small>DPMS + KV cache</small></th><th scope="col">Pro reduction</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">Tokens computed</th><td>1,052,196</td><td>397,539</td><td><strong>62%</strong></td></tr>
+                  <tr><th scope="row">Input-processing time</th><td>554.4 s</td><td>142.3 s</td><td><strong>74%</strong></td></tr>
+                  <tr><th scope="row">Total turn time</th><td>851 s</td><td>404 s</td><td><strong>53%</strong></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="dpms-cache-reference">Edition labels describe the feature configurations, not separate edition builds. Session totals include all model calls; computed tokens exclude inputs reused from KV cache.</p>
+          </section>
           <div class="dpms-measurement-footer">
             <p>20 October 2026 · Gemma 4 26B-A4B (QAT q4_0) · llama.cpp</p>
             ${featureEnabled("vision") ? '<a class="dpms-text-link" href="../labs/index.html#dpms-roadmap">What comes after v1 <span aria-hidden="true">→</span></a>' : ""}

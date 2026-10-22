@@ -18,7 +18,7 @@
       } catch (_) { /* The default theme also works when storage is unavailable. */ }
     </script>
     <link rel="stylesheet" href="../home.css?v=8f2bbfee023d323c" />
-    <link rel="stylesheet" href="./styles.css?v=383bcfa87ea9b9b0" />
+    <link rel="stylesheet" href="./styles.css?v=3c26606039fd9e22" />
     <!-- DeskLemur public metadata -->
     <link rel="canonical" href="https://www.desklemur.com/labs/" />
     <meta property="og:type" content="website" />
@@ -35,19 +35,19 @@
   <body class="home-page labs-page">
     <a class="skip-link" href="#main-content">Skip to content</a>
     <header class="site-header">
-      <a class="brand" href="../index.html?v=43455aebd6516168" aria-label="DeskLemur home"><span class="brand-mark"><img src="../assets/web/desklemur-mark-64.png?v=55cfd14b5d16461d" alt="" /></span><span>DESKLEMUR</span></a>
+      <a class="brand" href="../index.html?v=77aaeb0dda2a0ee0" aria-label="DeskLemur home"><span class="brand-mark"><img src="../assets/web/desklemur-mark-64.png?v=55cfd14b5d16461d" alt="" /></span><span>DESKLEMUR</span></a>
       <nav class="main-nav" id="primary-navigation" aria-label="Primary navigation">
-        <div class="product-menu" data-feature="home.product"><button class="product-trigger" type="button" aria-expanded="false" aria-controls="product-dropdown">Product <span aria-hidden="true">⌄</span></button><div class="product-dropdown" id="product-dropdown" data-product-dropdown hidden><a class="product-entry" href="../os/index.html?v=43455aebd6516168"><img src="../os/assets/web/icon-64.png?v=803e539b5b8541d4" alt="" /><span><b>DeskLemurOS</b><small>Local AI orchestration runtime</small></span><i aria-hidden="true">↗</i></a></div></div>
-        <a data-feature="home.labs" href="./index.html?v=43455aebd6516168" aria-current="page">Labs</a>
-        <a data-feature="home.news" href="../news/index.html?v=43455aebd6516168">News</a>
-        <a data-feature="home.community" href="../index.html?v=43455aebd6516168#community">Community</a>
-        <a data-feature="home.about" href="../index.html?v=43455aebd6516168#about">About</a>
+        <div class="product-menu" data-feature="home.product"><button class="product-trigger" type="button" aria-expanded="false" aria-controls="product-dropdown">Product <span aria-hidden="true">⌄</span></button><div class="product-dropdown" id="product-dropdown" data-product-dropdown hidden><a class="product-entry" href="../os/index.html?v=77aaeb0dda2a0ee0"><img src="../os/assets/web/icon-64.png?v=803e539b5b8541d4" alt="" /><span><b>DeskLemurOS</b><small>Local AI orchestration runtime</small></span><i aria-hidden="true">↗</i></a></div></div>
+        <a data-feature="home.labs" href="./index.html?v=77aaeb0dda2a0ee0" aria-current="page">Labs</a>
+        <a data-feature="home.news" href="../news/index.html?v=77aaeb0dda2a0ee0">News</a>
+        <a data-feature="home.community" href="../index.html?v=77aaeb0dda2a0ee0#community">Community</a>
+        <a data-feature="home.about" href="../index.html?v=77aaeb0dda2a0ee0#about">About</a>
       </nav>
       <div class="header-actions"><button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-navigation">MENU</button><a class="github-link" data-site-github href="https://github.com/desklemur-dev/DeskLemurOS" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a><button class="theme-toggle" type="button" aria-label="Switch to light theme" aria-pressed="false"><span aria-hidden="true">◐</span><span class="theme-label">Light</span></button></div>
     </header>
     <main id="main-content" tabindex="-1">
       <section class="section labs-intro" aria-labelledby="labs-title">
-        <nav class="labs-breadcrumb" aria-label="Breadcrumb"><a href="../index.html?v=43455aebd6516168">Home</a><span aria-hidden="true">/</span><span aria-current="page">Labs</span></nav>
+        <nav class="labs-breadcrumb" aria-label="Breadcrumb"><a href="../index.html?v=77aaeb0dda2a0ee0">Home</a><span aria-hidden="true">/</span><span aria-current="page">Labs</span></nav>
         <p class="eyebrow">DESKLEMUR LABS</p>
         <h1 id="labs-title">Better AI.<br /><em>One measured step<br class="labs-title-break" /> at a time.</em></h1>
         <p class="labs-intro-lead">The research behind DeskLemurOS. Less input to process today, and new questions about how AI could adapt through experience.</p>
@@ -60,13 +60,19 @@
           <h2 id="labs-dpms-title">Less input.<br /><em>A lighter start.</em></h2>
           <p>Standard uses KV cache. Pro adds DPMS alongside KV cache to reduce input tokens and processing time.</p>
           <p>Our re-measured v1 comparison found 85.5% fewer input tokens at the first planner call of each turn. Explore the numbers and the complete-session results.</p>
-          <a class="button button-primary" href="../os/index.html?v=43455aebd6516168#/#dpms">Explore the measurement <span aria-hidden="true">↗</span></a>
+          <a class="button button-primary" href="../os/index.html?v=77aaeb0dda2a0ee0#/#dpms">Explore the measurement <span aria-hidden="true">↗</span></a>
         </div>
         <aside class="labs-result" aria-label="DPMS v1 measurement summary">
           <p class="labs-result-kicker">INPUT TOKEN REDUCTION</p>
           <p class="labs-result-value">85.5<span>%</span></p>
           <dl><div><dt>Standard · KV cache only</dt><dd>85,266</dd></div><div><dt>Pro · DPMS + KV cache</dt><dd>12,345</dd></div></dl>
           <p class="labs-result-unit">Average input tokens at a turn’s first planner call</p>
+          <div class="labs-cache-results">
+            <h3>Actual tokens computed · complete session</h3>
+            <dl><div><dt>Standard · KV cache only</dt><dd>1,052,196</dd></div><div><dt>Pro · DPMS + KV cache</dt><dd>397,539</dd></div></dl>
+            <p><strong>62% less computation</strong> with the Pro setup.</p>
+            <a href="../os/index.html?v=77aaeb0dda2a0ee0#/#dpms-edition-comparison">Compare session results <span aria-hidden="true">↗</span></a>
+          </div>
           <p class="labs-result-context">14 turns per run · 20 October 2026<br />Gemma 4 26B-A4B (QAT q4_0)</p>
           <p class="labs-result-note">Edition labels describe the feature configurations; the measurement compares DPMS off and on in the same test setup. With KV cache enabled in both runs, adding DPMS reduced computed tokens by 62%, input-processing time by 74%, and total turn time by 53% across the complete session. Results depend on the model and setup and do not establish equivalent task accuracy.</p>
         </aside>
@@ -80,7 +86,7 @@
       <section class="section labs-roadmap-section" id="dpms-roadmap" aria-labelledby="labs-roadmap-title">
         <div class="section-heading"><p class="eyebrow">03 / THE RESEARCH ROADMAP</p><h2 id="labs-roadmap-title">Where we are.<br /><em>What comes next.</em></h2></div>
         <ol class="labs-roadmap" aria-label="DPMS development stages">
-          <li class="labs-stage labs-stage-complete"><div class="labs-stage-top"><span>v1</span><strong>Measured</strong></div><h3>Token efficiency</h3><p>The re-measured first planner calls used 85.5% fewer input tokens across 14 turns per run.</p><a href="../os/index.html?v=43455aebd6516168#/#dpms">View the results <span aria-hidden="true">↗</span></a></li>
+          <li class="labs-stage labs-stage-complete"><div class="labs-stage-top"><span>v1</span><strong>Measured</strong></div><h3>Token efficiency</h3><p>The re-measured first planner calls used 85.5% fewer input tokens across 14 turns per run.</p><a href="../os/index.html?v=77aaeb0dda2a0ee0#/#dpms">View the results <span aria-hidden="true">↗</span></a></li>
           <li class="labs-stage labs-stage-complete"><div class="labs-stage-top"><span>v2</span><strong>Development complete</strong></div><h3>A research milestone</h3><p>A completed stage exploring memory and continuity for AI.</p></li>
           <li class="labs-stage labs-stage-active"><div class="labs-stage-top"><span>v3</span><strong>In development</strong></div><h3>More adaptive AI</h3><p>Working toward memory that adapts as tasks and information change.</p></li>
           <li class="labs-stage"><div class="labs-stage-top"><span>v4</span><strong>Planned after v3</strong></div><h3>Autonomous evolution</h3><p>A future direction: systems that improve through experience. Work follows v3.</p></li>
@@ -91,13 +97,13 @@
       <section class="section labs-questions" aria-labelledby="labs-questions-title">
         <div class="section-heading"><p class="eyebrow">THE QUESTIONS BEHIND THE WORK</p><h2 id="labs-questions-title">Built with intention.</h2></div>
         <div class="labs-question-grid">
-          <article class="lab-card lab-card-visual lab-card-memory"><img class="lab-photo" src="../assets/web/memory-with-boundaries.webp?v=2d2eba01d0295ee1" alt="An illustrated memory shelf with separate compartments" loading="lazy" decoding="async" /><div><span class="lab-state">RESEARCH DIRECTION</span></div><h3>Memory, with boundaries.</h3><p>What should an agent remember, who can access it, and when should it forget?</p><a href="../os/index.html?v=43455aebd6516168#/vision#memory-governance">Explore memory governance <span aria-hidden="true">↗</span></a></article>
-          <article class="lab-card lab-card-visual"><img class="lab-photo" src="../os/assets/vision/web/discovery-to-engineering.webp?v=e1cf301739234d48" alt="A DeskLemur engineer working on a local AI system" loading="lazy" decoding="async" /><div><span class="lab-state">PRODUCT PHILOSOPHY</span></div><h3>Discovery to engineering.</h3><p>A capable model is a starting point. Making it an understandable, operable system is the next challenge.</p><a href="../os/index.html?v=43455aebd6516168#/vision#discovery-to-engineering">Read the philosophy <span aria-hidden="true">↗</span></a></article>
+          <article class="lab-card lab-card-visual lab-card-memory"><img class="lab-photo" src="../assets/web/memory-with-boundaries.webp?v=2d2eba01d0295ee1" alt="An illustrated memory shelf with separate compartments" loading="lazy" decoding="async" /><div><span class="lab-state">RESEARCH DIRECTION</span></div><h3>Memory, with boundaries.</h3><p>What should an agent remember, who can access it, and when should it forget?</p><a href="../os/index.html?v=77aaeb0dda2a0ee0#/vision#memory-governance">Explore memory governance <span aria-hidden="true">↗</span></a></article>
+          <article class="lab-card lab-card-visual"><img class="lab-photo" src="../os/assets/vision/web/discovery-to-engineering.webp?v=e1cf301739234d48" alt="A DeskLemur engineer working on a local AI system" loading="lazy" decoding="async" /><div><span class="lab-state">PRODUCT PHILOSOPHY</span></div><h3>Discovery to engineering.</h3><p>A capable model is a starting point. Making it an understandable, operable system is the next challenge.</p><a href="../os/index.html?v=77aaeb0dda2a0ee0#/vision#discovery-to-engineering">Read the philosophy <span aria-hidden="true">↗</span></a></article>
         </div>
       </section>
     </main>
-    <footer class="footer" data-feature="home.about"><div class="footer-top"><p class="footer-wordmark">DESKLEMUR</p><p data-site-text="home.footer_tagline">Independent systems for an intelligent future.</p></div><div class="footer-bottom"><span>© <span data-site-text="site.copyright_year">2026</span> DESKLEMUR</span><a href="../index.html?v=43455aebd6516168">Back to home <span aria-hidden="true">↗</span></a><a data-site-contact href="mailto:desklemur@outlook.com">desklemur@outlook.com ↗</a></div></footer>
-    <script src="../site-data.js?v=9f0b083ad2139762"></script>
+    <footer class="footer" data-feature="home.about"><div class="footer-top"><p class="footer-wordmark">DESKLEMUR</p><p data-site-text="home.footer_tagline">Independent systems for an intelligent future.</p></div><div class="footer-bottom"><span>© <span data-site-text="site.copyright_year">2026</span> DESKLEMUR</span><a href="../index.html?v=77aaeb0dda2a0ee0">Back to home <span aria-hidden="true">↗</span></a><a data-site-contact href="mailto:desklemur@outlook.com">desklemur@outlook.com ↗</a></div></footer>
+    <script src="../site-data.js?v=0edc46a20909ac9b"></script>
     <script src="../home.js?v=8841248973b69c00"></script>
   </body>
 </html>
