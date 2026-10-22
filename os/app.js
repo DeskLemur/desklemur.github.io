@@ -637,7 +637,7 @@
     const editions = guide.editions;
     const primaryEditions = editions.filter(edition => ['standard', 'pro'].includes(edition.id));
     const referenceEditions = editions.filter(edition => !['standard', 'pro'].includes(edition.id));
-    const cardRows = ['model_engine', 'agent_routes', 'context_efficiency', 'execution_state']
+    const cardRows = ['model_engine', 'agent_routes', 'input_optimization', 'execution_state']
       .map(id => guide.rows.find(row => row.id === id)).filter(Boolean);
     return `<section class="section editions-section" id="editions" aria-labelledby="editions-title"><div class="container">
       <div class="section-heading"><div><div class="section-kicker">EDITION OVERVIEW</div><h2 id="editions-title">Compare Standard and Pro.</h2></div><p>A shared foundation for local work. Choose the features that fit the way you use your workspace.</p></div>
@@ -1292,7 +1292,7 @@
     const stepTotals = totals(steps);
     const signed = value => `${value > 0 ? '+' : value < 0 ? '−' : ''}${number(Math.abs(value))}`;
     const stepCells = (off, on) => `<td>${number(off)}</td><td>${number(on)}</td><td>${number(off - on)}</td><td>${((off - on) / off * 100).toFixed(1)}%</td>`;
-    const stacks = ['DPMS off', 'DPMS on'].map((label, side) => `
+    const stacks = ['Standard setup · KV cache only', 'Pro setup · DPMS + KV cache'].map((label, side) => `
       <div class="dpms-stack-row">
         <div class="dpms-stack-label"><strong>${label}</strong><span>${number(blockTotals[side])} tokens</span></div>
         <div class="dpms-stack-track" aria-hidden="true"><div class="dpms-stack-fill" data-dpms-bar>${blocks.map(([name, off, on], index) => {
@@ -1303,7 +1303,7 @@
     return `
       <section class="dpms-breakdown" aria-labelledby="dpms-block-title">
         <h3 id="dpms-block-title">Average first-call input tokens by block</h3>
-        <p>First planner call of each of 14 turns · actual calls from the DPMS off and on sessions.</p>
+        <p>First planner call of each of 14 turns · actual calls from the DPMS off and on sessions. KV cache was enabled in both.</p>
         <figure class="dpms-stacked-chart" data-dpms-chart aria-labelledby="dpms-block-title">
           ${stacks}
           <figcaption>Blocks share the same scale. Colors match the table below.</figcaption>
@@ -1317,7 +1317,7 @@
             <tfoot><tr><th scope="row">Total of rounded averages</th><td>${number(blockTotals[0])}</td><td>${number(blockTotals[1])}</td><td>${signed(blockTotals[1] - blockTotals[0])}</td></tr></tfoot>
           </table>
         </div>
-        <p class="dpms-data-note">Values are rounded averages. Change means ON minus OFF.</p>
+        <p class="dpms-data-note">OFF and ON refer to DPMS; KV cache is enabled in both. Values are rounded averages. Change means ON minus OFF.</p>
       </section>
       <details class="dpms-data-detail">
         <summary>First-call totals by turn <span>14 measured turns per run</span></summary>
@@ -1330,7 +1330,7 @@
             <tfoot><tr><th scope="row">All 14 first calls</th>${stepCells(...stepTotals)}</tr></tfoot>
           </table>
         </div>
-        <p class="dpms-data-note">Saved = OFF − ON. Reduction = saved ÷ OFF. These are corresponding turns in two live sessions; conversation histories can differ. Later planner steps are not included in this table.</p>
+        <p class="dpms-data-note">OFF and ON refer to DPMS; KV cache is enabled in both. Saved = OFF − ON. Reduction = saved ÷ OFF. These are corresponding turns in two live sessions; conversation histories can differ. Later planner steps are not included in this table.</p>
       </details>`;
   }
 
@@ -1498,7 +1498,7 @@
         </section>
 
         <section class="section speed-section" id="dpms"><div class="container">
-          <div class="section-heading"><div><div class="section-kicker">DPMS · LESS INPUT TO PROCESS</div><h2>A lighter start<br />for your AI.</h2></div><p>DPMS reduces input token usage and processing time. Here is what we measured with v1 in two live test sessions.</p></div>
+          <div class="section-heading"><div><div class="section-kicker">DPMS · LESS INPUT TO PROCESS</div><h2>A lighter start<br />for your AI.</h2></div><p>Standard uses KV cache. Pro combines DPMS with KV cache to reduce input token usage and processing time. Here is what we measured with DPMS v1.</p></div>
           <div class="dpms-measurement">
             <div class="dpms-result">
               <span class="dpms-eyebrow">V1 · RE-MEASURED ON LIVE RUNS</span>
@@ -1511,15 +1511,15 @@
               <figcaption id="dpms-chart-title">Average input tokens at the first planner call</figcaption>
               <dl class="dpms-bars">
                 <div class="dpms-bar-row">
-                  <dt>DPMS off <small>Measured live session</small></dt>
+                  <dt>KV cache only <small>Standard setup · DPMS off</small></dt>
                   <dd><strong>85,266</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-baseline" data-dpms-bar></span></span></dd>
                 </div>
                 <div class="dpms-bar-row">
-                  <dt>DPMS v1 <small>Measured live session</small></dt>
+                  <dt>DPMS + KV cache <small>Pro setup · DPMS v1 on</small></dt>
                   <dd><strong>12,345</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-bar-on" data-dpms-bar></span></span></dd>
                 </div>
               </dl>
-              <p class="dpms-chart-note">Corresponding first calls · zero-based scale · lower is better</p>
+              <p class="dpms-chart-note">KV cache enabled in both runs · corresponding first calls · lower is better</p>
             </figure>
           </div>
           <div class="dpms-session-summary" aria-labelledby="dpms-session-title">
@@ -1537,7 +1537,7 @@
           </div>
           <p class="dpms-measurement-note">Measured on this model and setup. Results vary by task, hardware, and server configuration.</p>
           <details class="support-detail dpms-method"><summary>About this measurement</summary><div class="support-detail-body">
-            <p>Two live runs of the same 12-scenario, 14-turn test were measured with DPMS off and on. KV cache was enabled in both, and the model server was restarted before each run. The report was updated on 21 October 2026.</p>
+            <p>Standard and Pro labels show the corresponding feature configurations, not separate edition builds. Two live runs of the same 12-scenario, 14-turn test were measured with DPMS off and on. KV cache was enabled in both, and the model server was restarted before each run. The report was updated on 21 October 2026.</p>
             <p>The 85.5% figure compares summed input tokens at the first planner call of corresponding turns. The chart shows rounded averages; tokens were counted with the model’s tokenizer before chat templating. This replaces the earlier reference-based comparison.</p>
             <p>Session totals include all model calls, including reviews and checks. Tokens sent fell from 3,883,058 to 841,874 (78%). Tokens computed exclude inputs reused from KV cache. Timing figures cover the complete test session; these runs do not establish equivalent task accuracy.</p>
             ${dpmsMeasurementDetailsTemplate()}

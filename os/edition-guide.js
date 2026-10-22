@@ -2,18 +2,18 @@
 window.DESKLEMUR_EDITION_GUIDE = {
   "schema_version": 1,
   "source": "build_release.py",
-  "source_hash": "c03540b67d85dec5676b3327c5398bc2c681d2403ef4491b19ac2a399b580049",
+  "source_hash": "6947587c04b040a258c525f00f8906722a75d6ecaeb151565d3a78c91ce4e339",
   "editions": [
     {
       "id": "standard",
       "name": "Standard",
-      "summary": "Local agents with bundled in-app llama.cpp.",
+      "summary": "Local agents with bundled in-app llama.cpp and KV cache.",
       "availability": "listed"
     },
     {
       "id": "pro",
       "name": "Pro",
-      "summary": "Bundled local inference with DPMS for lower input token usage.",
+      "summary": "Bundled local inference with DPMS + KV cache for more efficient processing.",
       "availability": "listed"
     },
     {
@@ -86,6 +86,17 @@ window.DESKLEMUR_EDITION_GUIDE = {
       }
     },
     {
+      "id": "input_optimization",
+      "label": "Input optimization",
+      "description": "Standard uses KV cache. Pro adds DPMS alongside KV cache.",
+      "values": {
+        "standard": "KV cache only",
+        "pro": "DPMS + KV cache",
+        "ultimate": "DPMS; KV cache depends on the model server",
+        "developer": "DPMS; KV cache depends on the model server"
+      }
+    },
+    {
       "id": "research_memory",
       "label": "Experimental memory settings",
       "description": "Additional memory settings for research.",
@@ -143,8 +154,8 @@ window.DESKLEMUR_EDITION_GUIDE = {
   ],
   "notes": [
     {
-      "title": "DPMS",
-      "body": "Designed to reduce input token usage for faster processing. See the DPMS section for the v1 token comparison."
+      "title": "DPMS + KV cache",
+      "body": "Standard uses KV cache. Pro combines DPMS with KV cache to reduce input token usage. See the measured comparison with KV cache enabled in both runs."
     },
     {
       "title": "Compatibility",
