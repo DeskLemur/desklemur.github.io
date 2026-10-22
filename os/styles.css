@@ -56,6 +56,14 @@
 .dpms-session-summary { margin-top: 24px; padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
 .dpms-session-summary h3 { margin: 0 0 8px; color: var(--text); font-size: 1rem; }
 .dpms-session-summary > p { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.7; }
+.dpms-input-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px 28px; margin: 24px 0 28px; padding: 22px; border: 1px solid var(--line); border-left: 3px solid var(--orange); background: rgba(216,111,54,.05); }
+.dpms-input-summary h4 { margin: 0; color: var(--text); font-size: 1.2rem; line-height: 1.5; }
+.dpms-input-summary p { margin: 8px 0 0; color: var(--muted); font-size: .78rem; line-height: 1.7; }
+.dpms-input-summary p strong { color: var(--orange-bright); }
+.dpms-input-total { align-self: center; font-variant-numeric: tabular-nums; }
+.dpms-input-total strong { display: block; color: var(--orange-bright); font-size: 1.3rem; }
+.dpms-input-total span { display: block; margin-top: 8px; color: var(--muted); font-size: .73rem; line-height: 1.7; }
+.dpms-input-summary .dpms-input-limit { grid-column: 1 / -1; margin: 0; font-size: .72rem; }
 .dpms-cache-comparison { margin: 28px 0; max-width: 800px; }
 .dpms-cache-comparison figcaption { font-size: 1rem; font-weight: 600; }
 .dpms-cache-standard { width: 100%; background: var(--muted); opacity: .55; }
@@ -75,6 +83,8 @@
 .dpms-session-table td strong { color: var(--orange-bright); }
 @media (max-width: 650px) {
   .dpms-session-summary { padding: 20px; }
+  .dpms-input-summary { grid-template-columns: 1fr; padding: 16px; }
+  .dpms-input-total strong { font-size: 1.15rem; }
   .dpms-cache-savings { gap: 18px; }
   .dpms-cache-comparison .dpms-bar-row dd strong { font-size: 1.2rem; }
   .dpms-session-summary > .dpms-scroll-hint { display: block; margin: 0 0 10px; }
