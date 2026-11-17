@@ -1525,13 +1525,14 @@
           <section class="dpms-session-summary" id="dpms-edition-comparison" aria-labelledby="dpms-session-title">
             <h3 id="dpms-session-title">Standard vs Pro: measured session results</h3>
             <p>12 scenarios · 14 turns per run · KV cache enabled in both runs</p>
+            <p>Both runs started with an empty KV cache (cold start). Later model calls reused cached input, including calls within the first turn.</p>
             <aside class="dpms-input-summary" aria-labelledby="dpms-input-title">
               <div><h4 id="dpms-input-title">About one fifth as many input tokens.</h4><p>The Standard setup sent <strong>4.6×</strong> as many input tokens in this measured session.</p></div>
               <div class="dpms-input-total"><strong>3,883,058 → 841,874</strong><span>Standard → Pro · 78.3% fewer input tokens</span></div>
               <p class="dpms-input-limit">This is a reduction in session input, not an increase in the model’s context-window limit.</p>
             </aside>
             <figure class="dpms-cache-comparison" data-dpms-chart aria-labelledby="dpms-cache-chart-title">
-              <figcaption id="dpms-cache-chart-title">Tokens the model actually computed</figcaption>
+              <figcaption id="dpms-cache-chart-title">Measured input tokens computed</figcaption>
               <dl class="dpms-bars">
                 <div class="dpms-bar-row">
                   <dt>Standard <small>KV cache only</small></dt>
@@ -1542,13 +1543,8 @@
                   <dd><strong>397,539</strong><span class="dpms-bar-track" aria-hidden="true"><span class="dpms-bar-fill dpms-cache-pro" data-dpms-bar></span></span></dd>
                 </div>
               </dl>
-              <p class="dpms-cache-gain"><strong>62%</strong> fewer tokens computed with Pro than the Standard setup.</p>
+              <p class="dpms-cache-gain"><strong>62%</strong> fewer input tokens computed after adding DPMS. Both runs used KV cache.</p>
             </figure>
-            <div class="dpms-cache-savings" aria-label="Computation saved against the same reference">
-              <div><span>Standard · KV cache only</span><strong>73% <small>less computation</small></strong></div>
-              <div><span>Pro · DPMS + KV cache</span><strong>90% <small>less computation</small></strong></div>
-            </div>
-            <p class="dpms-cache-reference">Both percentages use the same 3,883,058-token reference: recorded input assuming no DPMS or cache reuse. This is a calculated reference, not a separate cache-off test or an app mode.</p>
             <p class="dpms-scroll-hint">Scroll the table sideways to see all columns.</p>
             <div class="dpms-table-scroll" role="region" aria-label="Standard and Pro session comparison" tabindex="0">
               <table class="dpms-data-table dpms-session-table">
@@ -1556,13 +1552,23 @@
                 <thead><tr><th scope="col">Metric</th><th scope="col">Standard<small>KV cache only</small></th><th scope="col">Pro<small>DPMS + KV cache</small></th><th scope="col">Pro reduction</th></tr></thead>
                 <tbody>
                   <tr><th scope="row">Total input tokens sent</th><td>3,883,058</td><td>841,874</td><td><strong>78%</strong></td></tr>
-                  <tr><th scope="row">Tokens computed</th><td>1,052,196</td><td>397,539</td><td><strong>62%</strong></td></tr>
+                  <tr><th scope="row">Input tokens computed</th><td>1,052,196</td><td>397,539</td><td><strong>62%</strong></td></tr>
                   <tr><th scope="row">Input-processing time</th><td>554.4 s</td><td>142.3 s</td><td><strong>74%</strong></td></tr>
                   <tr><th scope="row">Total turn time</th><td>851 s</td><td>404 s</td><td><strong>53%</strong></td></tr>
                 </tbody>
               </table>
             </div>
-            <p class="dpms-cache-reference">Edition labels describe the feature configurations, not separate edition builds. Session totals include all model calls; computed tokens exclude inputs reused from KV cache.</p>
+            <p class="dpms-cache-reference">Edition labels describe the feature configurations, not separate edition builds. Session totals include all model calls. Computed input tokens exclude input reused from KV cache.</p>
+            <details class="support-detail dpms-reference-detail">
+              <summary>Calculated comparison with zero KV cache reuse</summary>
+              <div class="support-detail-body">
+                <p>The reference assumes every model call computes all its input. It uses the <strong>3,883,058</strong> input tokens sent by the DPMS-off run as the reference count. Both percentages compare measured results against that same reference.</p>
+                <div class="dpms-cache-savings" aria-label="Reduction against the calculated zero-reuse reference">
+                  <div><span>Standard · KV cache only</span><strong>73% <small>fewer input tokens computed</small></strong></div>
+                  <div><span>Pro · DPMS + KV cache</span><strong>90% <small>fewer input tokens computed</small></strong></div>
+                </div>
+              </div>
+            </details>
           </section>
           <div class="dpms-measurement-footer">
             <p>20 October 2026 · Gemma 4 26B-A4B (QAT q4_0) · llama.cpp</p>
@@ -1570,7 +1576,7 @@
           </div>
           <p class="dpms-measurement-note">Measured on this model and setup. Results vary by task, hardware, and server configuration.</p>
           <details class="support-detail dpms-method"><summary>About this measurement</summary><div class="support-detail-body">
-            <p>Standard and Pro labels show the corresponding feature configurations, not separate edition builds. Two live runs of the same 12-scenario, 14-turn test were measured with DPMS off and on. KV cache was enabled in both, and the model server was restarted before each run. The report was updated on 21 October 2026.</p>
+            <p>Standard and Pro labels show the corresponding feature configurations, not separate edition builds. Two live runs of the same 12-scenario, 14-turn test were measured with DPMS off and on. The model server was restarted before each run to start with an empty KV cache. Both runs used KV cache throughout. Cache reuse varied by call, and the session totals pool all calls. The report was updated on 21 October 2026.</p>
             <p>The 85.5% figure compares summed input tokens at the first planner call of corresponding turns. The chart shows rounded averages; tokens were counted with the model’s tokenizer before chat templating. This replaces the earlier reference-based comparison.</p>
             <p>Session totals include all model calls, including reviews and checks. Tokens sent fell from 3,883,058 to 841,874 (78%). Tokens computed exclude inputs reused from KV cache. Timing figures cover the complete test session; these runs do not establish equivalent task accuracy.</p>
             ${dpmsMeasurementDetailsTemplate()}

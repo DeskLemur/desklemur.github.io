@@ -33,7 +33,7 @@
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-bar">
     <div class="report-width site-bar-inner">
-      <a class="brand" href="../index.html?v=9d8bff5ad588672c">
+      <a class="brand" href="../index.html?v=8b37d3c1f1cf4b38">
         <img src="../../assets/web/desklemur-mark-64.png?v=55cfd14b5d16461d" alt="" width="30" height="30" />
         <span>DeskLemur <strong>Labs</strong></span>
       </a>
@@ -86,7 +86,7 @@
         <div class="session-heading">
           <div>
             <h2 id="session-title">Complete sessions</h2>
-            <p>Includes all model calls, reviews, and checks.</p>
+            <p>All model calls across 14 turns per run. KV cache was enabled in both runs.</p>
           </div>
           <div class="session-time"><strong>53% shorter</strong><span>851 s → 404 s total turn time</span></div>
         </div>
@@ -96,12 +96,12 @@
           </thead>
           <tbody>
             <tr><th scope="row">Input tokens sent</th><td>3,883,058</td><td>841,874</td><td>78.3%</td></tr>
-            <tr><th scope="row">Tokens computed</th><td>1,052,196</td><td>397,539</td><td>62%</td></tr>
+            <tr><th scope="row">Input tokens computed</th><td>1,052,196</td><td>397,539</td><td>62%</td></tr>
             <tr><th scope="row">Input processing</th><td>554.4 s</td><td>142.3 s</td><td>74%</td></tr>
             <tr><th scope="row">Total turn time</th><td>851 s</td><td>404 s</td><td>53%</td></tr>
           </tbody>
         </table>
-        <p class="caption">The computed token count excludes input tokens reused from KV cache.</p>
+        <p class="caption">Both runs started with an empty KV cache. Later calls could reuse cached input, including calls within the first turn. Computed input excludes any reused tokens.</p>
       </section>
     </section>
 
@@ -154,7 +154,7 @@
       <dl>
         <div><dt>Model</dt><dd>Gemma 4 26B-A4B (QAT q4_0)</dd></div>
         <div><dt>Engine</dt><dd>llama.cpp</dd></div>
-        <div><dt>Test design</dt><dd>Two live runs of the same 12 scenarios, 14 turns per run. KV cache was enabled in both. The model server restarted before each run.</dd></div>
+        <div><dt>Test design</dt><dd>Two live runs of the same 12 scenarios, 14 turns per run. The model server restarted before each run to start with an empty KV cache. Both runs used KV cache throughout. The session totals pool calls with different levels of cache reuse.</dd></div>
         <div><dt>First planner call</dt><dd>Counts use the model’s tokenizer before chat templating. The reduction compares sums across corresponding turns. The chart shows rounded per-turn averages.</dd></div>
         <div><dt>Scope</dt><dd>Results apply to this test setup. Conversation histories can differ across the two runs. Task accuracy would require a separate comparison.</dd></div>
         <div><dt>Source revision</dt><dd>Measured <time datetime="2026-10-20">20 October 2026</time>. Source report updated <time datetime="2026-10-21">21 October 2026</time>.</dd></div>
@@ -163,8 +163,8 @@
   </main>
 
   <footer class="report-width report-footer">
-    <a href="../index.html?v=9d8bff5ad588672c#dpms-roadmap">DPMS research roadmap <span aria-hidden="true">→</span></a>
-    <a href="../../os/index.html?v=9d8bff5ad588672c#/#dpms">DPMS in DeskLemurOS <span aria-hidden="true">↗</span></a>
+    <a href="../index.html?v=8b37d3c1f1cf4b38#dpms-roadmap">DPMS research roadmap <span aria-hidden="true">→</span></a>
+    <a href="../../os/index.html?v=8b37d3c1f1cf4b38#/#dpms">DPMS in DeskLemurOS <span aria-hidden="true">↗</span></a>
   </footer>
 </body>
 </html>
