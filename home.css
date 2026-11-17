@@ -401,6 +401,8 @@ html.light-theme .screen-dialog::backdrop { background:rgba(30,25,18,.78); }
   .preview-image { aspect-ratio:auto; text-align:left; border:1px solid var(--line); }
   .preview-image picture { display:block; position:relative; aspect-ratio:3 / 2; overflow:hidden; }
   .preview-image picture img { position:absolute; width:var(--screen-width); height:auto; max-width:none; left:var(--screen-left); top:var(--screen-top); }
+  .preview-image .preview-image-full { aspect-ratio:auto; }
+  .preview-image .preview-image-full img { position:static; width:100%; }
   .preview-enlarge { position:static; display:block; padding:0 11px; border:0; border-top:1px solid var(--line); background:var(--panel); color:var(--ink); font-size:12px; box-shadow:none; }
   .preview-label-desktop,.preview-caption-desktop { display:none; }
   .preview-label-mobile { display:flex; justify-content:space-between; align-items:center; min-height:44px; }
