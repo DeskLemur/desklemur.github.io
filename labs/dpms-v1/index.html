@@ -14,7 +14,7 @@
       document.documentElement.classList.toggle("light-theme", localStorage.getItem("desklemur-theme") === "light");
     } catch (_) { /* The dark theme works without storage. */ }
   </script>
-  <link rel="stylesheet" href="./styles.css?v=1091080b6f83fd14" />
+  <link rel="stylesheet" href="./styles.css?v=23c1326710380c00" />
   <script src="./report.js?v=793bd0d46a568526" defer></script>
     <!-- DeskLemur public metadata -->
     <link rel="canonical" href="https://www.desklemur.com/labs/dpms-v1/" />
@@ -33,7 +33,7 @@
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="site-bar">
     <div class="report-width site-bar-inner">
-      <a class="brand" href="../index.html?v=402629de44c440ec">
+      <a class="brand" href="../index.html?v=9d8bff5ad588672c">
         <img src="../../assets/web/desklemur-mark-64.png?v=55cfd14b5d16461d" alt="" width="30" height="30" />
         <span>DeskLemur <strong>Labs</strong></span>
       </a>
@@ -108,6 +108,21 @@
     <section class="report-panel" id="turns" aria-labelledby="turns-title">
       <h2 id="turns-title">First planner call, by turn</h2>
       <p class="caption">Input tokens before chat templating. KV cache was enabled for both runs.</p>
+      <figure class="turn-range">
+        <figcaption>Reduction in input tokens</figcaption>
+        <div class="turn-range-plot" role="img" aria-label="On an 80% to 90% scale, reductions across 14 turns range from 82.0% to 87.9%. The overall reduction is 85.5%.">
+          <div class="turn-range-axis" aria-hidden="true">
+            <span class="turn-range-band"></span>
+            <span class="turn-range-overall"><span><strong>85.5%</strong> overall</span></span>
+            <span class="turn-range-label turn-range-low">82.0%</span>
+            <span class="turn-range-label turn-range-high">87.9%</span>
+            <span class="turn-range-tick" style="--tick: 0%">80%</span>
+            <span class="turn-range-tick" style="--tick: 50%">85%</span>
+            <span class="turn-range-tick" style="--tick: 100%">90%</span>
+          </div>
+        </div>
+        <p class="caption">Range across 14 turns. Overall compares the two runs’ summed first-call tokens.</p>
+      </figure>
       <table class="report-table" aria-labelledby="turns-title">
         <thead>
           <tr><th scope="col">Turn</th><th scope="col">DPMS off</th><th scope="col">DPMS on</th><th scope="col">Reduction</th></tr>
@@ -148,8 +163,8 @@
   </main>
 
   <footer class="report-width report-footer">
-    <a href="../index.html?v=402629de44c440ec#dpms-roadmap">DPMS research roadmap <span aria-hidden="true">→</span></a>
-    <a href="../../os/index.html?v=402629de44c440ec#/#dpms">DPMS in DeskLemurOS <span aria-hidden="true">↗</span></a>
+    <a href="../index.html?v=9d8bff5ad588672c#dpms-roadmap">DPMS research roadmap <span aria-hidden="true">→</span></a>
+    <a href="../../os/index.html?v=9d8bff5ad588672c#/#dpms">DPMS in DeskLemurOS <span aria-hidden="true">↗</span></a>
   </footer>
 </body>
 </html>
