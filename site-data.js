@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "6b2f4977a4ee4e9c",
+    "version": "699463fe28099415",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -50,8 +50,8 @@ window.DESKLEMUR_SITE = {
       "assets/web/memory-with-boundaries.webp": "2d2eba01d0295ee1",
       "assets/web/signal-lemur-208.webp": "225fd29b259d6c2b",
       "desklemur-mark.png": "379e0ee2654109b5",
-      "home.css": "8f2bbfee023d323c",
-      "home.js": "8841248973b69c00",
+      "home.css": "8ec419cd2c4d3a44",
+      "home.js": "acc26c9234c4ee3e",
       "labs/dpms-v1/report.js": "793bd0d46a568526",
       "labs/dpms-v1/share.png": "af33d29740d35202",
       "labs/dpms-v1/styles.css": "1091080b6f83fd14",
@@ -104,6 +104,9 @@ window.DESKLEMUR_SITE = {
       "os/assets/product/agent-memories.png": "904e77c520b25a89",
       "os/assets/product/file-review-html.png": "e135439c023f67b2",
       "os/assets/product/mcp-saved-tools.png": "0e3815634da59fab",
+      "os/assets/product/mobile-files-fbef37b8e52c.webp": "fbef37b8e52cc873",
+      "os/assets/product/mobile-memory-ba41c627206e.webp": "ba41c627206ea29a",
+      "os/assets/product/mobile-tools-37f765ab929b.webp": "37f765ab929b7095",
       "os/assets/vision/capability-control.png": "e5cd70f2a9aec692",
       "os/assets/vision/capable-model-system.png": "02f471e81beac849",
       "os/assets/vision/discovery-to-engineering.png": "22a8ddbc77d4e139",

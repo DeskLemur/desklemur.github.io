@@ -303,6 +303,8 @@ html.light-theme .home-page .lab-card-visual::after { background:linear-gradient
 .preview-panel { margin:0; }
 .preview-panel:focus-visible { outline:2px solid var(--orange-light); outline-offset:3px; }
 .preview-image { position:relative; display:block; width:100%; aspect-ratio:1.6; margin:0; padding:0; border:0; border-bottom:1px solid var(--line); background:#11110f; cursor:zoom-in; overflow:hidden; }
+.preview-image picture { display:contents; }
+.preview-label-mobile,.preview-caption-mobile { display:none; }
 .preview-image img { display:block; width:100%; height:100%; object-fit:contain; }
 .preview-enlarge { position:absolute; right:12px; bottom:12px; padding:8px 10px; border:1px solid #5c594f; background:#191916; color:#e9e5da; font:600 10px/1.4 Arial,Helvetica,sans-serif; box-shadow:0 3px 15px #0005; }
 .preview-image:hover .preview-enlarge { border-color:var(--orange); }
@@ -390,13 +392,21 @@ html.light-theme .screen-dialog::backdrop { background:rgba(30,25,18,.78); }
   .home-page .hero-lead { font-size:16px; }
   .home-page .hero-context { margin-top:20px; font-size:12px; }
   .home-page .hero-actions { gap:18px; }
-  .preview-heading { padding:12px; font-size:8px; }
-  .preview-data-label { font-size:8px; }
+  .preview-heading { padding:12px; }
   .preview-tabs { padding:0 10px; }
   .preview-tabs button { gap:6px; }
-  .preview-panel figcaption { padding:18px 16px; min-height:108px; }
   .preview-panel figcaption strong { font-size:15px; }
-  .preview-enlarge { bottom:8px; right:8px; font-size:9px; padding:7px; }
+  .preview-heading,.preview-data-label { font-size:11px; }
+  .preview-panel { padding:12px 12px 0; }
+  .preview-image { aspect-ratio:auto; text-align:left; border:1px solid var(--line); }
+  .preview-image picture { display:block; position:relative; aspect-ratio:3 / 2; overflow:hidden; }
+  .preview-image picture img { position:absolute; width:var(--screen-width); height:auto; max-width:none; left:var(--screen-left); top:var(--screen-top); }
+  .preview-enlarge { position:static; display:block; padding:0 11px; border:0; border-top:1px solid var(--line); background:var(--panel); color:var(--ink); font-size:12px; box-shadow:none; }
+  .preview-label-desktop,.preview-caption-desktop { display:none; }
+  .preview-label-mobile { display:flex; justify-content:space-between; align-items:center; min-height:44px; }
+  .preview-label-mobile b { color:var(--orange-light); font-size:15px; }
+  .preview-caption-mobile { display:block; }
+  .preview-panel figcaption { padding:13px 2px 15px; min-height:84px; align-content:start; gap:4px; }
   .preview-note { padding:12px 16px; }
   .screen-dialog { width:calc(100% - 20px); max-height:calc(100dvh - 20px); }
   .screen-dialog-heading { padding:10px 12px; gap:12px; }

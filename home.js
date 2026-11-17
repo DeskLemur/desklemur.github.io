@@ -145,6 +145,7 @@
   renderNews();
 
   const viewer = document.querySelector("#screen-viewer");
+  let mobileViewerOpener;
   document.querySelectorAll("[data-screen-gallery]").forEach((gallery) => {
     const tabs = [...gallery.querySelectorAll('[role="tab"]')];
     const panels = [...gallery.querySelectorAll('[role="tabpanel"]')];
@@ -167,19 +168,40 @@
       });
     });
     gallery.querySelectorAll("[data-screen-open]").forEach((button) => {
+      const source = button.querySelector("img");
+      const alternative = button.querySelector("source[data-screen-title]");
+      const smallScreen = alternative && window.matchMedia(alternative.media);
+      const caption = button.closest("figure").querySelector("figcaption");
+      const desktopAlt = source.alt;
+      const desktopLabel = button.getAttribute("aria-label");
+      const syncLabels = () => {
+        source.alt = smallScreen.matches ? alternative.dataset.screenAlt : desktopAlt;
+        button.setAttribute("aria-label", smallScreen.matches
+          ? `View full screenshot of ${alternative.dataset.screenTitle}` : desktopLabel);
+      };
+      if (smallScreen) {
+        syncLabels();
+        smallScreen.addEventListener("change", syncLabels);
+      }
       button.addEventListener("click", () => {
         if (!viewer || typeof viewer.showModal !== "function") return;
-        const source = button.querySelector("img");
+        const mobile = smallScreen?.matches;
         const full = viewer.querySelector("[data-screen-full]");
-        full.src = source.currentSrc || source.src;
-        full.alt = source.alt;
-        viewer.querySelector("#screen-viewer-title").textContent = button.closest("figure").querySelector("figcaption strong").textContent;
+        full.src = mobile ? alternative.srcset : source.src;
+        full.alt = mobile ? alternative.dataset.screenAlt : desktopAlt;
+        viewer.querySelector("#screen-viewer-title").textContent = mobile
+          ? alternative.dataset.screenTitle : caption.querySelector("strong").textContent;
+        mobileViewerOpener = mobile ? button : null;
         viewer.showModal();
         root.classList.add("screenshot-open");
       });
     });
   });
-  viewer?.addEventListener("close", () => root.classList.remove("screenshot-open"));
+  viewer?.addEventListener("close", () => {
+    root.classList.remove("screenshot-open");
+    mobileViewerOpener?.focus({ preventScroll: true });
+    mobileViewerOpener = null;
+  });
   viewer?.addEventListener("click", (event) => { if (event.target === viewer) viewer.close(); });
 
   toggle?.addEventListener("click", () => setTheme(root.classList.contains("light-theme") ? "dark" : "light", true));
