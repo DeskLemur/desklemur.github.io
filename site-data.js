@@ -41,7 +41,7 @@ window.DESKLEMUR_SITE = {
     }
   ],
   "cache": {
-    "version": "c598c7bcbba4a9e0",
+    "version": "cbdf6705819feace",
     "assets": {
       "assets/hero-lemur-operator.png": "3364fb6fb61d4846",
       "assets/memory-with-boundaries.png": "7e715ca900939b86",
@@ -52,6 +52,9 @@ window.DESKLEMUR_SITE = {
       "desklemur-mark.png": "379e0ee2654109b5",
       "home.css": "8f2bbfee023d323c",
       "home.js": "8841248973b69c00",
+      "labs/dpms-v1/report.js": "793bd0d46a568526",
+      "labs/dpms-v1/share.png": "af33d29740d35202",
+      "labs/dpms-v1/styles.css": "1091080b6f83fd14",
       "labs/styles.css": "3c26606039fd9e22",
       "news/news.css": "0ba6967d2301a8c2",
       "news/news.js": "f3f317bd07592cf0",

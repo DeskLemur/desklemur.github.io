@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="In a 14-turn test with KV cache enabled in both runs, DPMS v1 reduced first planner call input by 85.5%. See the session totals, per-turn results, and method." />
+
+  <meta name="theme-color" content="#121210" />
+  <meta name="color-scheme" content="dark light" />
+  <title>DPMS v1 measurement | DeskLemur Labs</title>
+  <link rel="icon" type="image/png" href="../../assets/web/desklemur-mark-64.png?v=55cfd14b5d16461d" />
+  <script>
+    try {
+      document.documentElement.classList.toggle("light-theme", localStorage.getItem("desklemur-theme") === "light");
+    } catch (_) { /* The dark theme works without storage. */ }
+  </script>
+  <link rel="stylesheet" href="./styles.css?v=1091080b6f83fd14" />
+  <script src="./report.js?v=793bd0d46a568526" defer></script>
+    <!-- DeskLemur public metadata -->
+    <link rel="canonical" href="https://www.desklemur.com/labs/dpms-v1/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.desklemur.com/labs/dpms-v1/" />
+    <meta property="og:title" content="DPMS v1 measurement | DeskLemur Labs" />
+    <meta name="twitter:title" content="DPMS v1 measurement | DeskLemur Labs" />
+    <meta property="og:description" content="In a 14-turn test with KV cache enabled in both runs, DPMS v1 reduced first planner call input by 85.5%. See the session totals, per-turn results, and method." />
+    <meta name="twitter:description" content="In a 14-turn test with KV cache enabled in both runs, DPMS v1 reduced first planner call input by 85.5%. See the session totals, per-turn results, and method." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:image" content="https://www.desklemur.com/labs/dpms-v1/share.png" />
+    <meta name="twitter:image" content="https://www.desklemur.com/labs/dpms-v1/share.png" />
+    <!-- /DeskLemur public metadata -->
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-bar">
+    <div class="report-width site-bar-inner">
+      <a class="brand" href="../index.html?v=cbdf6705819feace">
+        <img src="../../assets/web/desklemur-mark-64.png?v=55cfd14b5d16461d" alt="" width="30" height="30" />
+        <span>DeskLemur <strong>Labs</strong></span>
+      </a>
+      <div class="site-bar-actions">
+        <span class="report-label">Research report</span>
+        <button class="theme-toggle" type="button" hidden>
+          <span aria-hidden="true">◐</span><span data-theme-label>Light</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="report-width report-body" id="main-content" tabindex="-1">
+    <header class="report-heading">
+      <p class="kicker">Measured <time datetime="2026-10-20">20 Oct 2026</time></p>
+      <h1>DPMS v1 measurement</h1>
+      <p>How much input did DPMS save when both runs used KV cache?</p>
+    </header>
+
+    <nav class="report-nav" aria-label="Report sections" data-report-nav>
+      <a id="tab-results" href="#results">Results</a>
+      <a id="tab-turns" href="#turns">By turn</a>
+      <a id="tab-method" href="#method">Method</a>
+    </nav>
+
+    <section class="report-panel" id="results" aria-labelledby="results-title">
+      <div class="result-focus">
+        <div class="result-lead">
+          <p class="report-value">85.5<span>%</span></p>
+          <h2 id="results-title">Fewer input tokens</h2>
+          <p>At each turn’s first planner call.</p>
+        </div>
+        <figure class="report-figure">
+          <figcaption>Average input tokens per first call</figcaption>
+          <dl class="bars">
+            <div>
+              <dt>KV cache only</dt>
+              <dd>85,266 <span class="bar" aria-hidden="true"><span></span></span></dd>
+            </div>
+            <div>
+              <dt>DPMS v1 + KV cache</dt>
+              <dd>12,345 <span class="bar bar-on" aria-hidden="true"><span></span></span></dd>
+            </div>
+          </dl>
+          <p>14 turns per run · lower is better</p>
+        </figure>
+      </div>
+
+      <section class="session" id="session-results" aria-labelledby="session-title">
+        <div class="session-heading">
+          <div>
+            <h2 id="session-title">Complete sessions</h2>
+            <p>Includes all model calls, reviews, and checks.</p>
+          </div>
+          <div class="session-time"><strong>53% shorter</strong><span>851 s → 404 s total turn time</span></div>
+        </div>
+        <table class="report-table" aria-labelledby="session-title">
+          <thead>
+            <tr><th scope="col">Metric</th><th scope="col">DPMS off</th><th scope="col">DPMS on</th><th scope="col">Reduction</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Input tokens sent</th><td>3,883,058</td><td>841,874</td><td>78.3%</td></tr>
+            <tr><th scope="row">Tokens computed</th><td>1,052,196</td><td>397,539</td><td>62%</td></tr>
+            <tr><th scope="row">Input processing</th><td>554.4 s</td><td>142.3 s</td><td>74%</td></tr>
+            <tr><th scope="row">Total turn time</th><td>851 s</td><td>404 s</td><td>53%</td></tr>
+          </tbody>
+        </table>
+        <p class="caption">The computed token count excludes input tokens reused from KV cache.</p>
+      </section>
+    </section>
+
+    <section class="report-panel" id="turns" aria-labelledby="turns-title">
+      <h2 id="turns-title">First planner call, by turn</h2>
+      <p class="caption">Input tokens before chat templating. KV cache was enabled for both runs.</p>
+      <table class="report-table" aria-labelledby="turns-title">
+        <thead>
+          <tr><th scope="col">Turn</th><th scope="col">DPMS off</th><th scope="col">DPMS on</th><th scope="col">Reduction</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Clock</th><td>85,704</td><td>12,150</td><td>85.8%</td></tr>
+          <tr><th scope="row">Plain question</th><td>84,454</td><td>10,212</td><td>87.9%</td></tr>
+          <tr><th scope="row">Greeting</th><td>84,650</td><td>10,440</td><td>87.7%</td></tr>
+          <tr><th scope="row">Calculator</th><td>84,764</td><td>10,678</td><td>87.4%</td></tr>
+          <tr><th scope="row">How-to</th><td>85,002</td><td>11,091</td><td>87.0%</td></tr>
+          <tr><th scope="row">File write</th><td>85,166</td><td>12,923</td><td>84.8%</td></tr>
+          <tr><th scope="row">File read</th><td>85,330</td><td>10,918</td><td>87.2%</td></tr>
+          <tr><th scope="row">File edit</th><td>85,569</td><td>11,440</td><td>86.6%</td></tr>
+          <tr><th scope="row">Ask, then write</th><td>85,519</td><td>13,554</td><td>84.2%</td></tr>
+          <tr><th scope="row">Notion read</th><td>85,813</td><td>12,707</td><td>85.2%</td></tr>
+          <tr><th scope="row">Repeat last answer</th><td>85,585</td><td>13,000</td><td>84.8%</td></tr>
+          <tr><th scope="row">Web, current fact</th><td>85,657</td><td>13,251</td><td>84.5%</td></tr>
+          <tr><th scope="row">Delegation</th><td>85,133</td><td>15,131</td><td>82.2%</td></tr>
+          <tr><th scope="row">Delegated web task</th><td>85,379</td><td>15,337</td><td>82.0%</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><th scope="row">All 14 first calls</th><td>1,193,725</td><td>172,832</td><td>85.5%</td></tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <section class="report-panel method" id="method" aria-labelledby="method-title">
+      <h2 id="method-title">Measurement method</h2>
+      <dl>
+        <div><dt>Model</dt><dd>Gemma 4 26B-A4B (QAT q4_0)</dd></div>
+        <div><dt>Engine</dt><dd>llama.cpp</dd></div>
+        <div><dt>Test design</dt><dd>Two live runs of the same 12 scenarios, 14 turns per run. KV cache was enabled in both. The model server restarted before each run.</dd></div>
+        <div><dt>First planner call</dt><dd>Counts use the model’s tokenizer before chat templating. The reduction compares sums across corresponding turns. The chart shows rounded per-turn averages.</dd></div>
+        <div><dt>Scope</dt><dd>Results apply to this test setup. Conversation histories can differ across the two runs. Task accuracy would require a separate comparison.</dd></div>
+        <div><dt>Source revision</dt><dd>Measured <time datetime="2026-10-20">20 October 2026</time>. Source report updated <time datetime="2026-10-21">21 October 2026</time>.</dd></div>
+      </dl>
+    </section>
+  </main>
+
+  <footer class="report-width report-footer">
+    <a href="../index.html?v=cbdf6705819feace#dpms-roadmap">DPMS research roadmap <span aria-hidden="true">→</span></a>
+    <a href="../../os/index.html?v=cbdf6705819feace#/#dpms">DPMS in DeskLemurOS <span aria-hidden="true">↗</span></a>
+  </footer>
+</body>
+</html>
